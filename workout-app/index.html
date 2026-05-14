@@ -259,6 +259,63 @@
   }
   .tab:hover { color: var(--text); background: none; }
   .tab.active { color: var(--navy); border-bottom-color: var(--navy); }
+
+  /* DATA MODAL — Export/Import */
+  .data-modal-backdrop {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+    display: none; align-items: center; justify-content: center;
+    z-index: 950; padding: 16px;
+  }
+  .data-modal-backdrop.open { display: flex; }
+  .data-modal {
+    background: white; border-radius: 12px; max-width: 640px; width: 100%;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+    display: flex; flex-direction: column; max-height: 88vh;
+  }
+  .data-modal-header {
+    padding: 14px 20px; border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .data-modal-header h2 { margin: 0; color: var(--navy); font-size: 18px; }
+  .data-modal-header .close {
+    background: none; border: none; font-size: 28px; color: var(--muted);
+    cursor: pointer; padding: 0; width: 32px; height: 32px; line-height: 1;
+  }
+  .data-modal-body {
+    padding: 14px 20px; overflow-y: auto; flex: 1;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .data-section {
+    padding: 12px; background: var(--bg-alt);
+    border: 1px solid var(--border); border-radius: 8px;
+  }
+  .data-section h3 {
+    margin: 0 0 6px; color: var(--navy); font-size: 12px;
+    text-transform: uppercase; letter-spacing: 0.6px; font-weight: 700;
+  }
+  .data-section p { margin: 0 0 8px; font-size: 12px; color: var(--muted); line-height: 1.5; }
+  .data-section textarea {
+    width: 100%; min-height: 110px; padding: 10px;
+    border: 1px solid var(--border); border-radius: 6px;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 11px;
+    background: white; outline: none; resize: vertical;
+  }
+  .data-section textarea:focus { border-color: var(--navy); }
+  .data-section .actions { display: flex; gap: 8px; margin-top: 8px; }
+  .data-section button { font-size: 13px; padding: 6px 14px; }
+  .data-link {
+    background: transparent; color: var(--muted); border: none;
+    font-size: 11px; padding: 4px 0; cursor: pointer;
+    text-decoration: underline; text-underline-offset: 2px;
+    font-family: inherit;
+  }
+  .data-link:hover { color: var(--navy); }
+  .primary {
+    background: var(--navy); color: white; border: 1px solid var(--navy);
+    padding: 6px 14px; border-radius: 6px; font-size: 13px; cursor: pointer;
+    font-family: inherit;
+  }
+  .primary:hover { background: #2C4D75; }
   .tab-panel { display: none; }
   .tab-panel.active { display: block; }
   .group { margin-bottom: 14px; }
@@ -331,8 +388,39 @@
       Click any day to log results and mark it complete. All changes save automatically.
       The 12-week grid starts the week of <span id="startDate"></span>.
     </span>
-    <button class="reset-link" id="resetBtn" title="Erase all workout history">Reset all data</button>
+    <div style="display:flex; gap:14px; align-items:center;">
+      <button class="data-link" id="dataBtn" title="Move data between devices">Export / Import data</button>
+      <button class="reset-link" id="resetBtn" title="Erase all workout history">Reset all data</button>
+    </div>
   </footer>
+</div>
+
+<!-- DATA MODAL -->
+<div class="data-modal-backdrop" id="dataModal">
+  <div class="data-modal">
+    <div class="data-modal-header">
+      <h2>Export / Import data</h2>
+      <button class="close" id="dataModalClose" title="Close (Esc)">×</button>
+    </div>
+    <div class="data-modal-body">
+      <div class="data-section">
+        <h3>Export from this device</h3>
+        <p>Tap Copy → on your other device (signed into the same Apple ID), open this page and tap Import. Universal Clipboard handles the transfer.</p>
+        <textarea id="dataExport" readonly></textarea>
+        <div class="actions">
+          <button class="primary" id="dataCopyBtn">📋 Copy to clipboard</button>
+        </div>
+      </div>
+      <div class="data-section">
+        <h3>Import onto this device</h3>
+        <p><strong>This replaces all current data on this device.</strong> Paste JSON exported from another device, then tap Import.</p>
+        <textarea id="dataImport" placeholder="Paste exported JSON here…"></textarea>
+        <div class="actions">
+          <button class="primary" id="dataImportBtn">⬇ Import &amp; replace</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- MODAL -->
@@ -950,6 +1038,82 @@ renderAll();
 
 // Re-render when another app (e.g. Blended Rhythm) toggles workout completion
 if (window.cosShared) window.cosShared.subscribe(() => renderAll());
+
+// ============================================================
+// EXPORT / IMPORT — manual cross-device data move (mirrors BR)
+// Same wrapper format → exports interop with BR's import box.
+// ============================================================
+const EXPORT_KEYS = ["cos-shared-v1", "workout-schedule-v2", "blended-rhythm-v1"];
+
+function buildExport() {
+  const stores = {};
+  for (const k of EXPORT_KEYS) {
+    const raw = localStorage.getItem(k);
+    if (raw == null) continue;
+    try { stores[k] = JSON.parse(raw); }
+    catch { stores[k] = raw; }
+  }
+  return { exportVersion: 1, exportedAt: new Date().toISOString(), source: "workout-app", stores };
+}
+function applyImport(parsed) {
+  if (!parsed || typeof parsed !== "object") throw new Error("not an object");
+  if (parsed.stores && typeof parsed.stores === "object") {
+    for (const [k, v] of Object.entries(parsed.stores)) {
+      localStorage.setItem(k, typeof v === "string" ? v : JSON.stringify(v));
+    }
+    return Object.keys(parsed.stores).length;
+  }
+  if (parsed.days || parsed.version) {
+    localStorage.setItem("cos-shared-v1", JSON.stringify(parsed));
+    return 1;
+  }
+  throw new Error("doesn't look like exported app data");
+}
+
+const dataModal = document.getElementById("dataModal");
+const dataExport = document.getElementById("dataExport");
+const dataImport = document.getElementById("dataImport");
+
+document.getElementById("dataBtn").addEventListener("click", () => {
+  dataExport.value = JSON.stringify(buildExport(), null, 2);
+  dataImport.value = "";
+  dataModal.classList.add("open");
+});
+document.getElementById("dataModalClose").addEventListener("click", () => dataModal.classList.remove("open"));
+dataModal.addEventListener("click", e => { if (e.target === dataModal) dataModal.classList.remove("open"); });
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && dataModal.classList.contains("open")) dataModal.classList.remove("open");
+});
+document.getElementById("dataCopyBtn").addEventListener("click", async () => {
+  const btn = document.getElementById("dataCopyBtn");
+  try {
+    await navigator.clipboard.writeText(dataExport.value);
+    btn.textContent = "✓ Copied";
+  } catch {
+    dataExport.select();
+    document.execCommand('copy');
+    btn.textContent = "✓ Copied (fallback)";
+  }
+  setTimeout(() => btn.textContent = "📋 Copy to clipboard", 2000);
+});
+document.getElementById("dataImportBtn").addEventListener("click", () => {
+  const raw = dataImport.value.trim();
+  if (!raw) { alert("Paste exported JSON in the box first."); return; }
+  let parsed;
+  try { parsed = JSON.parse(raw); }
+  catch { alert("That doesn't parse as JSON. Make sure you copied the entire export."); return; }
+  const looksValid = parsed && (parsed.stores || parsed.days || parsed.version);
+  if (!looksValid) { alert("That doesn't look like exported app data."); return; }
+  const count = parsed.stores ? Object.keys(parsed.stores).length : 1;
+  if (!confirm(`This will REPLACE current data on this device with the imported data. ${count} store(s) will be overwritten. Continue?`)) return;
+  try { applyImport(parsed); }
+  catch (e) { alert("Couldn't import: " + e.message); return; }
+  // Reload local state from new localStorage
+  state = loadState();
+  renderAll();
+  dataModal.classList.remove("open");
+  alert("Imported. If anything still looks off, fully reload the page.");
+});
 </script>
 </body>
 </html>
