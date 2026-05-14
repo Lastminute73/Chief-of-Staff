@@ -9,6 +9,7 @@
 <meta name="theme-color" content="#1F3A5F">
 <link rel="apple-touch-icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' rx='36' fill='%231F3A5F'/><text x='90' y='118' font-size='110' text-anchor='middle' font-family='Apple Color Emoji,system-ui'>💪</text></svg>">
 <title>Workouts</title>
+<script src="../shared.js"></script>
 <style>
   :root {
     color-scheme: light;
@@ -431,6 +432,15 @@ function setWorkout(date, type) {
 
 function setCompleted(date, val) {
   const k = dateKey(date);
+  // Shared store is the source of truth for "is this workout done?"
+  if (window.cosShared) {
+    window.cosShared.setWorkout(k, val ? {
+      completed: true,
+      type: workoutFor(date),
+      loggedAt: new Date().toISOString(),
+    } : null);
+  }
+  // Keep legacy local flag in sync as a fallback for offline / shared-not-loaded cases.
   const e = state[k] || {};
   if (val) e.completed = true;
   else delete e.completed;
@@ -457,8 +467,38 @@ function setLog(date, log) {
 }
 
 function isCompleted(date) {
-  return !!(state[dateKey(date)] || {}).completed;
+  const k = dateKey(date);
+  // Prefer shared store (cross-app source of truth); fall back to local legacy flag.
+  if (window.cosShared) {
+    const w = window.cosShared.get(k, "workout");
+    if (w && w.completed) return true;
+  }
+  return !!(state[k] || {}).completed;
 }
+
+// One-time migration: copy any pre-existing local .completed flags into the shared store
+// so other apps see existing completion history.
+(function migrateCompletionsToShared() {
+  if (!window.cosShared) return;
+  let touched = false;
+  for (const [k, e] of Object.entries(state)) {
+    if (e && e.completed) {
+      const sharedDay = window.cosShared.getDay(k);
+      if (!sharedDay || !sharedDay.workout) {
+        // Reconstruct date for workout-type lookup
+        const [y, m, d] = k.split("-").map(Number);
+        const dt = new Date(y, m - 1, d);
+        window.cosShared.setWorkout(k, {
+          completed: true,
+          type: workoutFor(dt),
+          loggedAt: new Date().toISOString(),
+        });
+        touched = true;
+      }
+    }
+  }
+  if (touched) console.log("[cos] Migrated existing workout completions to shared store.");
+})();
 
 function getLog(date) {
   return (state[dateKey(date)] || {}).log || {};
@@ -907,6 +947,9 @@ document.querySelectorAll(".tab").forEach(tab => {
 document.getElementById("startDate").textContent = fmtDate(startMonday);
 renderReference();
 renderAll();
+
+// Re-render when another app (e.g. Blended Rhythm) toggles workout completion
+if (window.cosShared) window.cosShared.subscribe(() => renderAll());
 </script>
 </body>
 </html>

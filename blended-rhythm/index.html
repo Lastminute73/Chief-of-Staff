@@ -9,6 +9,7 @@
 <meta name="theme-color" content="#1F3A5F">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%231F3A5F'/%3E%3Ctext x='50' y='66' text-anchor='middle' font-size='52' font-family='-apple-system,Arial' font-weight='700' fill='white'%3ER%3C/text%3E%3C/svg%3E">
 <title>Blended Rhythm</title>
+<script src="../shared.js"></script>
 <style>
   :root {
     color-scheme: light;
@@ -44,9 +45,34 @@
     display: flex; justify-content: space-between; align-items: center;
     margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid var(--navy);
   }
+  header.app-header .title-block { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
+  header.app-header .title-text { min-width: 0; }
   header.app-header h1 { margin: 0; color: var(--navy); font-size: 22px; }
   header.app-header .subtitle { color: var(--muted); font-size: 12px; margin-top: 2px; }
   .toolbar { display: flex; gap: 8px; align-items: center; }
+  a.back-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 38px; height: 38px; border-radius: 10px;
+    background: var(--bg-alt); color: var(--navy);
+    text-decoration: none; font-size: 22px; font-weight: 700;
+    border: 1px solid var(--border); flex-shrink: 0; line-height: 1;
+  }
+  a.back-btn:hover, a.back-btn:active { background: #E5E7EB; border-color: var(--navy); }
+  .reset-link {
+    background: transparent; color: var(--muted); border: none;
+    font-size: 11px; padding: 4px 0; cursor: pointer;
+    text-decoration: underline; text-underline-offset: 2px;
+    font-family: inherit; letter-spacing: 0.02em;
+  }
+  .reset-link:hover { color: var(--bad-d); }
+  .block-link {
+    display: inline-block; margin-left: 8px;
+    color: var(--navy); font-weight: 700; text-decoration: none;
+    background: white; border: 1px solid var(--navy);
+    padding: 2px 8px; border-radius: 999px; font-size: 11px;
+    white-space: nowrap;
+  }
+  .block-link:hover, .block-link:active { background: var(--navy); color: white; }
   .clock { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
 
   button {
@@ -570,13 +596,16 @@
 <div class="container">
 
   <header class="app-header">
-    <div>
-      <h1>Blended Rhythm</h1>
-      <div class="subtitle">LCRM + Helix Aminos • 5 AM wake • two Big Rocks a day</div>
+    <div class="title-block">
+      <a href="../" class="back-btn" title="Back to Chief of Staff">‹</a>
+      <div class="title-text">
+        <h1>Blended Rhythm</h1>
+        <div class="subtitle">LCRM + Helix Aminos • 5 AM wake • two Big Rocks a day</div>
+      </div>
     </div>
     <div class="toolbar">
       <span class="clock" id="liveClock"></span>
-      <button class="danger" id="resetBtn">Reset day</button>
+      <button class="reset-link" id="resetBtn" title="Clear today's entries">Reset day</button>
     </div>
   </header>
 
@@ -1084,9 +1113,9 @@ function updateStats() {
   const dow = (new Date().getDay() + 6) % 7;
   const workoutType = WORKOUT_BY_DOW[dow];
 
-  const workoutDone = !!nn.workout;
+  const workoutDone = isWorkoutDoneFor(todayKey());
   const outreachDone = !!nn.outreach;
-  const nnCount = NN_ITEMS.filter(n => nn[n.id]).length;
+  const nnCount = NN_ITEMS.filter(n => isItemDoneFor(n.id, todayKey())).length;
   const rockCount = (rocks.lcrmDone ? 1 : 0) + (rocks.helixDone ? 1 : 0);
 
   const wStat = document.getElementById("statWorkout");
@@ -1127,14 +1156,16 @@ function openDayModal(date) {
   document.querySelector('[data-day-rock-done="lcrm"]').checked = !!rocks.lcrmDone;
   document.querySelector('[data-day-rock-done="helix"]').checked = !!rocks.helixDone;
 
-  // Non-negotiables
-  const nn = e.nn || {};
-  document.getElementById("dayModalNN").innerHTML = NN_ITEMS.map(item => `
-    <label data-day-nn="${item.id}">
-      <input type="checkbox" ${nn[item.id] ? 'checked' : ''}>
-      <span><strong>${item.label}</strong> <span style="color:var(--muted);font-weight:400;">— ${item.sub}</span></span>
-    </label>
-  `).join("");
+  // Non-negotiables — workout reads from shared store
+  document.getElementById("dayModalNN").innerHTML = NN_ITEMS.map(item => {
+    const checked = isItemDoneFor(item.id, key);
+    return `
+      <label data-day-nn="${item.id}">
+        <input type="checkbox" ${checked ? 'checked' : ''}>
+        <span><strong>${item.label}</strong> <span style="color:var(--muted);font-weight:400;">— ${item.sub}</span></span>
+      </label>
+    `;
+  }).join("");
 
   // Notes + Journal
   document.getElementById("dayNotes").value = e.notes || "";
@@ -1188,11 +1219,20 @@ function saveDayModalField() {
     delete e.rocks;
   }
 
-  // Non-negotiables
+  // Non-negotiables — workout flows to shared store, others stay local
   const nnUpdates = {};
   document.querySelectorAll('#dayModalNN [data-day-nn]').forEach(label => {
     const id = label.dataset.dayNn;
-    if (label.querySelector('input').checked) nnUpdates[id] = true;
+    const checked = label.querySelector('input').checked;
+    if (checked) nnUpdates[id] = true;
+    if (id === "workout" && window.cosShared) {
+      const dow = (dayModalDate.getDay() + 6) % 7;
+      window.cosShared.setWorkout(key, checked ? {
+        completed: true,
+        type: WORKOUT_BY_DOW[dow],
+        loggedAt: new Date().toISOString(),
+      } : null);
+    }
   });
   if (Object.keys(nnUpdates).length) e.nn = nnUpdates;
   else delete e.nn;
@@ -1472,7 +1512,7 @@ async function refreshEvents() {
 // ============================================================
 function descForBlock(b, date, houseTask, workoutDesc) {
   if (b.name === "House Reset" && houseTask) return houseTask;
-  if (b.name === "Workout" && workoutDesc) return workoutDesc;
+  if (b.name === "Workout" && workoutDesc) return workoutDesc + ' <a class="block-link" href="../workout-app/">Open Workout app →</a>';
   return b.desc;
 }
 function renderBlocks() {
@@ -1498,6 +1538,23 @@ function renderBlocks() {
 // ============================================================
 // RENDER — NON-NEGOTIABLES
 // ============================================================
+// Workout completion is shared across apps via cosShared. Other non-negotiables stay local.
+function isWorkoutDoneFor(dateKey_) {
+  if (window.cosShared) {
+    const w = window.cosShared.get(dateKey_, "workout");
+    if (w && w.completed) return true;
+  }
+  // Fall back to local NN flag if shared isn't loaded
+  const e = (state.days || {})[dateKey_] || {};
+  return !!(e.nn && e.nn.workout);
+}
+
+function isItemDoneFor(itemId, dateKey_) {
+  if (itemId === "workout") return isWorkoutDoneFor(dateKey_);
+  const e = (state.days || {})[dateKey_] || {};
+  return !!(e.nn && e.nn[itemId]);
+}
+
 function computeStreak(itemId) {
   let streak = 0;
   const today = new Date(); today.setHours(0,0,0,0);
@@ -1507,23 +1564,18 @@ function computeStreak(itemId) {
     const dow = (d.getDay() + 6) % 7;
     // Skip Sunday for workout streak (rest day)
     if (itemId === "workout" && dow === 6) continue;
-    const e = (state.days || {})[dateKey(d)] || {};
-    const nn = e.nn || {};
-    if (nn[itemId]) streak++;
+    if (isItemDoneFor(itemId, dateKey(d))) streak++;
     else break;
   }
   // Add today if checked
-  const todayNN = (dayEntry(todayKey()).nn) || {};
-  if (todayNN[itemId]) streak++;
+  if (isItemDoneFor(itemId, todayKey())) streak++;
   return streak;
 }
 
 function renderNN() {
-  const e = dayEntry(todayKey());
-  const nn = e.nn || {};
   const grid = document.getElementById("nnGrid");
   grid.innerHTML = NN_ITEMS.map(item => {
-    const done = !!nn[item.id];
+    const done = isItemDoneFor(item.id, todayKey());
     const streak = computeStreak(item.id);
     const streakText = streak > 0 ? `🔥 ${streak}` : "—";
     return `
@@ -1540,9 +1592,21 @@ function renderNN() {
     });
     el.querySelector('input').addEventListener('change', e => {
       const id = el.dataset.nn;
+      const checked = e.target.checked;
+      // Workout completion is owned by the cross-app shared store.
+      if (id === "workout" && window.cosShared) {
+        const dow = (new Date().getDay() + 6) % 7;
+        window.cosShared.setWorkout(todayKey(), checked ? {
+          completed: true,
+          type: WORKOUT_BY_DOW[dow],
+          loggedAt: new Date().toISOString(),
+        } : null);
+      }
+      // All non-negotiables (including workout as a fallback) also written locally.
       const e2 = dayEntry(todayKey());
       if (!e2.nn) e2.nn = {};
-      e2.nn[id] = e.target.checked;
+      if (checked) e2.nn[id] = true; else delete e2.nn[id];
+      if (Object.keys(e2.nn).length === 0) delete e2.nn;
       saveState();
       renderNN();
       updateStats();
@@ -1974,6 +2038,16 @@ function renderAll() {
 renderAll();
 initAccordions();
 refreshEvents();
+
+// Re-render when another app (e.g. Workout) updates the shared store.
+if (window.cosShared) {
+  window.cosShared.subscribe(() => {
+    renderNN();
+    updateStats();
+    renderMonth();
+    renderWeek();
+  });
+}
 // Refresh clock + current block once a minute, refresh calendar every 5 min
 setInterval(() => { updateClock(); renderBlocks(); }, 60 * 1000);
 setInterval(refreshEvents, 5 * 60 * 1000);
