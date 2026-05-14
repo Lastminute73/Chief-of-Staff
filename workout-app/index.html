@@ -51,10 +51,28 @@
   header.app-header {
     display: flex; justify-content: space-between; align-items: center;
     margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid var(--navy);
+    gap: 12px;
   }
+  header.app-header .title-block { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
+  header.app-header .title-text { min-width: 0; }
   header.app-header h1 { margin: 0; color: var(--navy); font-size: 22px; }
   header.app-header .subtitle { color: var(--muted); font-size: 12px; margin-top: 2px; }
-  .toolbar { display: flex; gap: 8px; }
+  a.back-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 38px; height: 38px; border-radius: 10px;
+    background: var(--bg-alt); color: var(--navy);
+    text-decoration: none; font-size: 22px; font-weight: 700;
+    border: 1px solid var(--border); flex-shrink: 0;
+    line-height: 1;
+  }
+  a.back-btn:hover, a.back-btn:active { background: #E5E7EB; border-color: var(--navy); }
+  .reset-link {
+    background: transparent; color: var(--muted); border: none;
+    font-size: 11px; padding: 4px 0; cursor: pointer;
+    text-decoration: underline; text-underline-offset: 2px;
+    font-family: inherit; letter-spacing: 0.02em;
+  }
+  .reset-link:hover { color: var(--skip-dark); }
 
   button {
     background: var(--bg); border: 1px solid var(--border); color: var(--text);
@@ -267,12 +285,12 @@
 <div class="container">
 
   <header class="app-header">
-    <div>
-      <h1>Workout Schedule</h1>
-      <div class="subtitle">3× Bike / 3× Lift / Rest Sunday — alternating days</div>
-    </div>
-    <div class="toolbar">
-      <button class="danger" id="resetBtn">Reset</button>
+    <div class="title-block">
+      <a href="../" class="back-btn" title="Back to Chief of Staff">‹</a>
+      <div class="title-text">
+        <h1>Workout Schedule</h1>
+        <div class="subtitle">3× Bike / 3× Lift / Rest Sunday — alternating days</div>
+      </div>
     </div>
   </header>
 
@@ -307,9 +325,12 @@
     <div class="tab-panel" data-panel="Rest" id="panel-Rest"></div>
   </div>
 
-  <footer class="notes">
-    Click any day to log results and mark it complete. All changes save automatically.
-    The 12-week grid starts the week of <span id="startDate"></span>.
+  <footer class="notes" style="display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; flex-wrap: wrap;">
+    <span>
+      Click any day to log results and mark it complete. All changes save automatically.
+      The 12-week grid starts the week of <span id="startDate"></span>.
+    </span>
+    <button class="reset-link" id="resetBtn" title="Erase all workout history">Reset all data</button>
   </footer>
 </div>
 
@@ -836,7 +857,7 @@ logSection.addEventListener("click", e => {
     setLog(currentDate, readLogFromForm(currentDate));
     setCompleted(currentDate, !isCompleted(currentDate));
     renderAll();
-    openModalFor(currentDate);
+    closeModal();
   }
 });
 
@@ -868,7 +889,7 @@ document.getElementById("rainSwap").addEventListener("click", () => {
 });
 
 document.getElementById("resetBtn").addEventListener("click", () => {
-  if (!confirm("Reset all swaps, logs, and completion marks?")) return;
+  if (!confirm("This will erase ALL workout history — every swap, log, and completion mark. This can't be undone. Continue?")) return;
   state = {};
   saveState();
   renderAll();
