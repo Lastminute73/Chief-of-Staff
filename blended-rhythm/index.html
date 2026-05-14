@@ -957,16 +957,91 @@ const NN_ITEMS = [
 ];
 
 // ============================================================
-// STATE
+// STATE — backed by cos-shared-v1 with a local fallback cache
 // ============================================================
+// BR-owned per-day fields that live in shared.days[k]:
+const BR_DAY_FIELDS = ["rocks", "nn", "journal", "journalUpdated", "notes"];
+const SHARED_KEY_RAW = "cos-shared-v1";
+
+function _readSharedRaw() {
+  try { return JSON.parse(localStorage.getItem(SHARED_KEY_RAW) || '{"version":1,"days":{},"weeks":{}}'); }
+  catch { return { version: 1, days: {}, weeks: {} }; }
+}
+function _writeSharedRaw(s) {
+  s.version = 1;
+  if (!s.days) s.days = {};
+  if (!s.weeks) s.weeks = {};
+  localStorage.setItem(SHARED_KEY_RAW, JSON.stringify(s));
+}
+
+// One-time migration: copy any local BR data not already present in shared.
+function _migrateLocalToShared() {
+  if (!window.cosShared) return;
+  let local;
+  try { local = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); }
+  catch { return; }
+  const shared = _readSharedRaw();
+  let touched = 0;
+  for (const [k, v] of Object.entries(local.days || {})) {
+    if (!shared.days[k]) shared.days[k] = {};
+    const sd = shared.days[k];
+    for (const f of BR_DAY_FIELDS) {
+      if (sd[f] === undefined && v[f] !== undefined) { sd[f] = v[f]; touched++; }
+    }
+  }
+  for (const [k, v] of Object.entries(local.weeks || {})) {
+    if (!shared.weeks[k]) { shared.weeks[k] = v; touched++; }
+  }
+  if (touched > 0) {
+    _writeSharedRaw(shared);
+    console.log(`[cos] Migrated ${touched} BR field(s) into the shared store.`);
+  }
+}
+
 function loadState() {
+  if (window.cosShared) {
+    _migrateLocalToShared();
+    const shared = _readSharedRaw();
+    const out = { days: {}, weeks: shared.weeks || {} };
+    for (const [k, v] of Object.entries(shared.days || {})) {
+      const br = {};
+      for (const f of BR_DAY_FIELDS) if (v[f] !== undefined) br[f] = v[f];
+      if (Object.keys(br).length > 0) out.days[k] = br;
+    }
+    return out;
+  }
+  // Fallback: shared.js not loaded — use legacy local store
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); }
   catch { return {}; }
 }
+
 function saveState() {
+  // Keep a local backup so the app still works if shared.js fails to load
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  // Merge BR-owned fields into shared (preserving fields owned by other apps)
+  if (window.cosShared) {
+    const shared = _readSharedRaw();
+    const allKeys = new Set([
+      ...Object.keys(shared.days || {}),
+      ...Object.keys(state.days || {}),
+    ]);
+    for (const k of allKeys) {
+      const br = (state.days || {})[k] || {};
+      const sd = shared.days[k] || {};
+      const merged = { ...sd };
+      for (const f of BR_DAY_FIELDS) {
+        if (br[f] !== undefined) merged[f] = br[f];
+        else delete merged[f];
+      }
+      if (Object.keys(merged).length === 0) delete shared.days[k];
+      else shared.days[k] = merged;
+    }
+    shared.weeks = state.weeks || {};
+    _writeSharedRaw(shared);
+  }
   flashSaved();
 }
+
 let state = loadState();
 
 function dateKey(d) {
@@ -1219,19 +1294,23 @@ function saveDayModalField() {
     delete e.rocks;
   }
 
-  // Non-negotiables — workout flows to shared store, others stay local
+  // Non-negotiables — workout writes only to shared.workout; other NNs stay in local nn
   const nnUpdates = {};
   document.querySelectorAll('#dayModalNN [data-day-nn]').forEach(label => {
     const id = label.dataset.dayNn;
     const checked = label.querySelector('input').checked;
-    if (checked) nnUpdates[id] = true;
-    if (id === "workout" && window.cosShared) {
-      const dow = (dayModalDate.getDay() + 6) % 7;
-      window.cosShared.setWorkout(key, checked ? {
-        completed: true,
-        type: WORKOUT_BY_DOW[dow],
-        loggedAt: new Date().toISOString(),
-      } : null);
+    if (id === "workout") {
+      if (window.cosShared) {
+        const dow = (dayModalDate.getDay() + 6) % 7;
+        window.cosShared.setWorkout(key, checked ? {
+          completed: true,
+          type: WORKOUT_BY_DOW[dow],
+          loggedAt: new Date().toISOString(),
+        } : null);
+      }
+      // Skip writing nn.workout — shared.workout is source of truth
+    } else if (checked) {
+      nnUpdates[id] = true;
     }
   });
   if (Object.keys(nnUpdates).length) e.nn = nnUpdates;
@@ -1538,13 +1617,13 @@ function renderBlocks() {
 // ============================================================
 // RENDER — NON-NEGOTIABLES
 // ============================================================
-// Workout completion is shared across apps via cosShared. Other non-negotiables stay local.
+// Workout completion lives in shared.days[k].workout (cross-app). Trust it exclusively when loaded.
 function isWorkoutDoneFor(dateKey_) {
   if (window.cosShared) {
     const w = window.cosShared.get(dateKey_, "workout");
-    if (w && w.completed) return true;
+    return !!(w && w.completed);
   }
-  // Fall back to local NN flag if shared isn't loaded
+  // Fall back to local NN flag only if shared isn't loaded at all
   const e = (state.days || {})[dateKey_] || {};
   return !!(e.nn && e.nn.workout);
 }
@@ -1593,21 +1672,23 @@ function renderNN() {
     el.querySelector('input').addEventListener('change', e => {
       const id = el.dataset.nn;
       const checked = e.target.checked;
-      // Workout completion is owned by the cross-app shared store.
       if (id === "workout" && window.cosShared) {
+        // Workout completion lives only in shared.workout (single source of truth).
         const dow = (new Date().getDay() + 6) % 7;
         window.cosShared.setWorkout(todayKey(), checked ? {
           completed: true,
           type: WORKOUT_BY_DOW[dow],
           loggedAt: new Date().toISOString(),
         } : null);
+        flashSaved();
+      } else {
+        // Other NNs go through local state, then propagate to shared via saveState.
+        const e2 = dayEntry(todayKey());
+        if (!e2.nn) e2.nn = {};
+        if (checked) e2.nn[id] = true; else delete e2.nn[id];
+        if (Object.keys(e2.nn).length === 0) delete e2.nn;
+        saveState();
       }
-      // All non-negotiables (including workout as a fallback) also written locally.
-      const e2 = dayEntry(todayKey());
-      if (!e2.nn) e2.nn = {};
-      if (checked) e2.nn[id] = true; else delete e2.nn[id];
-      if (Object.keys(e2.nn).length === 0) delete e2.nn;
-      saveState();
       renderNN();
       updateStats();
     });
@@ -2035,8 +2116,8 @@ function renderAll() {
   renderReference();
   renderJournalBtn();
 }
-// One-time migration: backfill any existing workout NN flags into the shared store
-// so existing streak/completion history flows into the new cross-app dataset.
+// Backfill workout NN flags into shared.workout so streak history shows immediately.
+// This runs once per load; it's idempotent (only writes if shared.workout is empty for the day).
 (function migrateBRWorkoutToShared() {
   if (!window.cosShared || !state.days) return;
   let touched = 0;
@@ -2050,26 +2131,24 @@ function renderAll() {
         window.cosShared.setWorkout(k, {
           completed: true,
           type: WORKOUT_BY_DOW[dow],
-          loggedAt: new Date().toISOString(),  // backfill timestamp = now (we don't have the real one)
+          loggedAt: new Date().toISOString(),
         });
         touched++;
       }
     }
   }
-  if (touched > 0) console.log(`[cos] Backfilled ${touched} workout completion(s) from Blended Rhythm into shared store.`);
+  if (touched > 0) console.log(`[cos] Backfilled ${touched} workout completion(s) into shared.workout.`);
 })();
 
 renderAll();
 initAccordions();
 refreshEvents();
 
-// Re-render when another app (e.g. Workout) updates the shared store.
+// Re-load state from shared when another app writes (cross-tab via storage event).
 if (window.cosShared) {
   window.cosShared.subscribe(() => {
-    renderNN();
-    updateStats();
-    renderMonth();
-    renderWeek();
+    state = loadState();
+    renderAll();
   });
 }
 // Refresh clock + current block once a minute, refresh calendar every 5 min

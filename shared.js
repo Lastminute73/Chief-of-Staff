@@ -12,11 +12,27 @@
  *   version: 1,
  *   days: {
  *     "YYYY-MM-DD": {
+ *       // Workout completion (workout-app + Blended Rhythm both read/write)
  *       workout: { completed: bool, type: "Bike"|"Lift"|"Rest", loggedAt: ISO },
+ *       // Big Rocks (Blended Rhythm — readable by other apps)
+ *       rocks:   { lcrm: str, helix: str, lcrmDone: bool, helixDone: bool },
+ *       // Non-negotiables (Blended Rhythm) — keys per item id (outreach, famAM, etc.)
+ *       nn:      { outreach: bool, famAM: bool, famPM: bool, helixStep: bool, shutdown: bool },
+ *       // Journal entry
+ *       journal: str,
+ *       journalUpdated: ISO,
+ *       // Day-specific freeform notes
+ *       notes:   str,
  *       // future fields any app can add — examples:
  *       // meditation: { minutes: number, completedAt: ISO },
  *       // reading:    { pages: number },
- *       // outreach:   { count: number, last: ISO },
+ *     }
+ *   },
+ *   weeks: {
+ *     // Keyed by Monday's YYYY-MM-DD
+ *     "YYYY-MM-DD": {
+ *       fridayWrap:  { gym: "yes|no", outreach: "yes|no", helix: str, pushed: str, bigRock: str },
+ *       sundaySetup: { rockLCRM: str, rockHelix: str, pipeline: str, family: str, blocker: str }
  *     }
  *   }
  * }
