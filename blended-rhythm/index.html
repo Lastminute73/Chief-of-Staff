@@ -2035,6 +2035,30 @@ function renderAll() {
   renderReference();
   renderJournalBtn();
 }
+// One-time migration: backfill any existing workout NN flags into the shared store
+// so existing streak/completion history flows into the new cross-app dataset.
+(function migrateBRWorkoutToShared() {
+  if (!window.cosShared || !state.days) return;
+  let touched = 0;
+  for (const [k, e] of Object.entries(state.days)) {
+    if (e && e.nn && e.nn.workout) {
+      const sharedDay = window.cosShared.getDay(k);
+      if (!sharedDay || !sharedDay.workout) {
+        const [y, m, d] = k.split("-").map(Number);
+        const dt = new Date(y, m - 1, d);
+        const dow = (dt.getDay() + 6) % 7;
+        window.cosShared.setWorkout(k, {
+          completed: true,
+          type: WORKOUT_BY_DOW[dow],
+          loggedAt: new Date().toISOString(),  // backfill timestamp = now (we don't have the real one)
+        });
+        touched++;
+      }
+    }
+  }
+  if (touched > 0) console.log(`[cos] Backfilled ${touched} workout completion(s) from Blended Rhythm into shared store.`);
+})();
+
 renderAll();
 initAccordions();
 refreshEvents();
