@@ -964,8 +964,12 @@ const BR_DAY_FIELDS = ["rocks", "nn", "journal", "journalUpdated", "notes"];
 const SHARED_KEY_RAW = "cos-shared-v1";
 
 function _readSharedRaw() {
-  try { return JSON.parse(localStorage.getItem(SHARED_KEY_RAW) || '{"version":1,"days":{},"weeks":{}}'); }
-  catch { return { version: 1, days: {}, weeks: {} }; }
+  let s;
+  try { s = JSON.parse(localStorage.getItem(SHARED_KEY_RAW) || '{"version":1}'); }
+  catch { s = { version: 1 }; }
+  if (!s.days)  s.days  = {};
+  if (!s.weeks) s.weeks = {};
+  return s;
 }
 function _writeSharedRaw(s) {
   s.version = 1;
@@ -1000,17 +1004,22 @@ function _migrateLocalToShared() {
 
 function loadState() {
   if (window.cosShared) {
-    _migrateLocalToShared();
-    const shared = _readSharedRaw();
-    const out = { days: {}, weeks: shared.weeks || {} };
-    for (const [k, v] of Object.entries(shared.days || {})) {
-      const br = {};
-      for (const f of BR_DAY_FIELDS) if (v[f] !== undefined) br[f] = v[f];
-      if (Object.keys(br).length > 0) out.days[k] = br;
+    try { _migrateLocalToShared(); }
+    catch (e) { console.warn("[cos] Migration failed (non-fatal):", e); }
+    try {
+      const shared = _readSharedRaw();
+      const out = { days: {}, weeks: shared.weeks || {} };
+      for (const [k, v] of Object.entries(shared.days || {})) {
+        const br = {};
+        for (const f of BR_DAY_FIELDS) if (v[f] !== undefined) br[f] = v[f];
+        if (Object.keys(br).length > 0) out.days[k] = br;
+      }
+      return out;
+    } catch (e) {
+      console.warn("[cos] Read from shared failed; falling back to local:", e);
     }
-    return out;
   }
-  // Fallback: shared.js not loaded — use legacy local store
+  // Fallback: shared.js not loaded or shared read errored — use legacy local store
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); }
   catch { return {}; }
 }
