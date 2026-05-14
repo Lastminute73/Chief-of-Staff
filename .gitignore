@@ -1,0 +1,13 @@
+# Personal documents — keep local only
+*.docx
+*.xlsx
+*.pdf
+House_Plan.html
+chief-of-staff-instructions.md
+
+# OS / app cruft
+.DS_Store
+.~lock.*
+*.swp
+.vscode/
+node_modules/

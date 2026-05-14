@@ -1,0 +1,1982 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Rhythm">
+<meta name="theme-color" content="#1F3A5F">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%231F3A5F'/%3E%3Ctext x='50' y='66' text-anchor='middle' font-size='52' font-family='-apple-system,Arial' font-weight='700' fill='white'%3ER%3C/text%3E%3C/svg%3E">
+<title>Blended Rhythm</title>
+<style>
+  :root {
+    color-scheme: light;
+    --navy: #1F3A5F;
+    --navy-2: #2C4D75;
+    --deep: #DDE9F7;       --deep-d: #1E4A82;
+    --pipe: #E3F1DA;       --pipe-d: #3F7B2E;
+    --fam:  #F8E1E8;       --fam-d:  #A33D6A;
+    --rec:  #FFF2CC;       --rec-d:  #8A6D1A;
+    --admin:#EDEDED;       --admin-d:#595959;
+    --bike: #BDD7EE;       --bike-d: #2E75B6;
+    --lift: #F4B084;       --lift-d: #C65911;
+    --rest: #D9D9D9;       --rest-d: #595959;
+    --good: #C6EFCE;       --good-d: #2D6A4F;
+    --warn: #F8CBAD;       --warn-d: #B45309;
+    --bad:  #FFC7CE;       --bad-d:  #C00000;
+    --bg: #FFFFFF;
+    --bg-alt: #F7F8FA;
+    --border: #E5E7EB;
+    --text: #111827;
+    --muted: #6B7280;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    background: var(--bg); color: var(--text);
+    font-size: 14px; line-height: 1.5;
+  }
+  .container { max-width: 1000px; margin: 0 auto; padding: 16px; }
+  header.app-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid var(--navy);
+  }
+  header.app-header h1 { margin: 0; color: var(--navy); font-size: 22px; }
+  header.app-header .subtitle { color: var(--muted); font-size: 12px; margin-top: 2px; }
+  .toolbar { display: flex; gap: 8px; align-items: center; }
+  .clock { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+
+  button {
+    background: var(--bg); border: 1px solid var(--border); color: var(--text);
+    padding: 6px 12px; border-radius: 6px; font-size: 13px; cursor: pointer;
+    font-family: inherit; transition: all 0.15s;
+  }
+  button:hover { background: var(--bg-alt); border-color: var(--navy); }
+  button.primary { background: var(--navy); color: white; border-color: var(--navy); }
+  button.primary:hover { background: var(--navy-2); }
+  button.success { background: var(--good-d); color: white; border-color: var(--good-d); }
+  button.success:hover { background: #235138; }
+  button.danger:hover { background: var(--bad); border-color: var(--bad-d); }
+
+  /* ============ TODAY HERO ============ */
+  .today-card {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-2) 100%);
+    color: white; padding: 18px 22px; border-radius: 12px; margin-bottom: 20px;
+    box-shadow: 0 4px 14px rgba(31,58,95,0.18);
+  }
+  .today-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+  .today-left .label { font-size: 11px; text-transform: uppercase; letter-spacing: 1.2px; opacity: 0.8; }
+  .today-left .date { font-size: 22px; font-weight: 700; margin: 2px 0 4px; }
+  .today-left .focus { font-size: 13px; opacity: 0.9; }
+  .today-stats {
+    display: grid; grid-template-columns: repeat(4, auto); gap: 12px;
+    align-items: center;
+  }
+  .stat {
+    background: rgba(255,255,255,0.12); padding: 8px 12px; border-radius: 8px;
+    text-align: center; min-width: 70px;
+  }
+  .stat .v { font-size: 18px; font-weight: 700; }
+  .stat .k { font-size: 10px; text-transform: uppercase; letter-spacing: 0.6px; opacity: 0.85; }
+  .stat.good { background: rgba(46,160,67,0.85); }
+  .stat.bad  { background: rgba(220,38,38,0.85); }
+
+  /* Big Rocks */
+  .rocks { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
+  .rock {
+    background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 10px; padding: 12px 14px;
+  }
+  .rock .rock-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.85; margin-bottom: 4px; }
+  .rock .rock-input {
+    width: 100%; background: transparent; border: none; color: white;
+    font-size: 15px; font-weight: 600; font-family: inherit; outline: none;
+    padding: 2px 0; border-bottom: 1px dashed rgba(255,255,255,0.3);
+  }
+  .rock .rock-input::placeholder { color: rgba(255,255,255,0.55); font-weight: 400; }
+  .rock .rock-check {
+    margin-top: 8px; display: flex; align-items: center; gap: 8px; font-size: 12px; opacity: 0.95;
+    cursor: pointer; user-select: none;
+  }
+  .rock .rock-check input { width: 16px; height: 16px; cursor: pointer; }
+  .rock.done .rock-input { text-decoration: line-through; opacity: 0.6; }
+
+  /* ============ TOMORROW SETUP ============ */
+  .tomorrow-card {
+    background: var(--bg); border: 1px solid var(--border);
+    border-left: 4px solid var(--navy);
+    border-radius: 10px; padding: 12px 16px; margin-bottom: 16px;
+    box-shadow: var(--shadow);
+  }
+  .tomorrow-head {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 10px; gap: 10px; flex-wrap: wrap;
+  }
+  .tomorrow-head .label {
+    color: var(--navy); font-weight: 700; font-size: 14px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .tomorrow-head .label .hint {
+    color: var(--muted); font-weight: 400; font-size: 11px;
+    background: var(--bg-alt); padding: 2px 8px; border-radius: 999px; margin-left: 6px;
+  }
+  .tomorrow-head .date { color: var(--muted); font-size: 12px; font-weight: 500; }
+  .tomorrow-head .save-status {
+    font-size: 11px; font-weight: 600; color: var(--good-d);
+    background: var(--good); padding: 2px 8px; border-radius: 999px;
+    opacity: 0; transition: opacity 0.2s;
+  }
+  .tomorrow-head .save-status.shown { opacity: 1; }
+  .tomorrow-rocks { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .tomorrow-rock {
+    background: var(--bg-alt); border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 12px;
+  }
+  .tomorrow-rock .rock-label {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px;
+    color: var(--muted); font-weight: 700; margin-bottom: 2px;
+  }
+  .tomorrow-rock input {
+    width: 100%; background: transparent; border: none;
+    font-size: 13px; font-weight: 600; font-family: inherit;
+    outline: none; color: var(--text);
+    border-bottom: 1px dashed var(--border); padding: 3px 0;
+  }
+  .tomorrow-rock input:focus { border-bottom-color: var(--navy); }
+  .tomorrow-rock input::placeholder { color: var(--muted); font-weight: 400; opacity: 0.7; }
+  @media (max-width: 720px) {
+    .tomorrow-rocks { grid-template-columns: 1fr; }
+  }
+
+  /* ============ JOURNAL ============ */
+  .panel-head .head-right { display: flex; gap: 8px; align-items: center; }
+  .journal-btn {
+    background: var(--bg); border: 1px solid var(--border); color: var(--text);
+    padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600;
+    cursor: pointer; font-family: inherit; display: inline-flex; align-items: center; gap: 4px;
+    transition: all 0.15s;
+  }
+  .journal-btn:hover { background: var(--bg-alt); border-color: var(--navy); }
+  .journal-btn.has-entry {
+    background: var(--good); border-color: var(--good-d); color: var(--good-d);
+  }
+  .journal-btn.has-entry::after { content: '✓'; margin-left: 2px; font-weight: 700; }
+
+  .journal-modal-backdrop {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+    display: none; align-items: center; justify-content: center;
+    z-index: 1000; padding: 16px;
+  }
+  .journal-modal-backdrop.open { display: flex; }
+  .journal-modal {
+    background: white; border-radius: 12px; max-width: 640px; width: 100%;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+    display: flex; flex-direction: column;
+    max-height: 85vh;
+  }
+  .journal-modal-header {
+    padding: 14px 20px; border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .journal-modal-header h2 { margin: 0; color: var(--navy); font-size: 18px; }
+  .journal-modal-header .date-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .journal-modal-header .close {
+    background: none; border: none; font-size: 28px; color: var(--muted);
+    cursor: pointer; padding: 0; width: 32px; height: 32px; line-height: 1;
+  }
+  .journal-modal-body { padding: 16px 20px; overflow-y: auto; flex: 1; }
+  .journal-modal-body textarea {
+    width: 100%; min-height: 280px; padding: 12px 14px;
+    border: 1px solid var(--border); border-radius: 8px;
+    font-family: inherit; font-size: 14px; line-height: 1.55;
+    resize: vertical; outline: none;
+    background: var(--bg);
+  }
+  .journal-modal-body textarea:focus { border-color: var(--navy); box-shadow: 0 0 0 2px rgba(31,58,95,0.1); }
+  .journal-modal-body .prompts {
+    font-size: 12px; color: var(--muted); margin-top: 10px; line-height: 1.6;
+  }
+  .journal-modal-body .prompts strong { color: var(--text); }
+  .prior-entry {
+    background: var(--bg-alt); border-left: 3px solid var(--navy);
+    padding: 10px 14px; margin-bottom: 14px; border-radius: 0 8px 8px 0;
+    max-height: 220px; overflow-y: auto;
+  }
+  .prior-entry .prior-label {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px;
+    color: var(--navy); margin-bottom: 6px; font-weight: 700;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .prior-entry .prior-label .when { color: var(--muted); font-weight: 500; letter-spacing: 0.4px; }
+  .prior-entry .prior-text {
+    font-size: 13px; color: var(--text); line-height: 1.55; white-space: pre-wrap;
+    font-style: italic;
+  }
+  .journal-modal-footer {
+    padding: 12px 20px; border-top: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  }
+  .journal-meta { font-size: 11px; color: var(--muted); }
+  .journal-actions { display: flex; gap: 8px; }
+
+  /* ============ DAY MODAL ============ */
+  .day-modal-backdrop {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+    display: none; align-items: center; justify-content: center;
+    z-index: 900; padding: 16px;
+  }
+  .day-modal-backdrop.open { display: flex; }
+  .day-modal {
+    background: white; border-radius: 12px; max-width: 760px; width: 100%;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+    display: flex; flex-direction: column;
+    max-height: 88vh;
+  }
+  .day-modal-header {
+    padding: 14px 20px; border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .day-modal-header h2 { margin: 0; color: var(--navy); font-size: 18px; }
+  .day-modal-header .date-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .day-modal-header .close {
+    background: none; border: none; font-size: 28px; color: var(--muted);
+    cursor: pointer; padding: 0; width: 32px; height: 32px; line-height: 1;
+  }
+  .day-modal-body {
+    padding: 14px 20px; overflow-y: auto; flex: 1;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .day-section {
+    padding: 10px 12px;
+    background: var(--bg-alt); border: 1px solid var(--border); border-radius: 8px;
+  }
+  .day-section h3 {
+    margin: 0 0 8px; color: var(--navy); font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.7px; font-weight: 700;
+  }
+  .day-section textarea, .day-section input[type=text] {
+    width: 100%; padding: 8px 10px;
+    border: 1px solid var(--border); border-radius: 6px;
+    font-family: inherit; font-size: 13px; background: white; outline: none;
+  }
+  .day-section textarea { min-height: 70px; resize: vertical; line-height: 1.5; }
+  .day-section input:focus, .day-section textarea:focus {
+    border-color: var(--navy); box-shadow: 0 0 0 2px rgba(31,58,95,0.1);
+  }
+  .day-rocks-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .day-rock-item {
+    background: white; border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px;
+  }
+  .day-rock-item .lbl {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted);
+    margin-bottom: 4px; font-weight: 700;
+  }
+  .day-rock-item input[type=text] {
+    border: none; padding: 2px 0; border-bottom: 1px dashed var(--border);
+    font-size: 13px; font-weight: 600;
+  }
+  .day-rock-item label.dn {
+    display: flex; align-items: center; gap: 6px; font-size: 12px; margin-top: 6px; cursor: pointer;
+  }
+  .day-nn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .day-nn-grid label {
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 10px; background: white; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 12px; cursor: pointer; user-select: none;
+  }
+  .day-nn-grid label:hover { border-color: var(--navy); }
+  .day-blocks-list { display: grid; gap: 3px; }
+  .day-blocks-list .b-row {
+    display: grid; grid-template-columns: 110px 1fr; gap: 8px;
+    padding: 5px 10px; border-radius: 4px; font-size: 12px; line-height: 1.4;
+    border-left: 3px solid var(--border);
+  }
+  .day-blocks-list .b-row .t { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .day-blocks-list .b-row.zone-deep  { background: var(--deep);  border-left-color: var(--deep-d); }
+  .day-blocks-list .b-row.zone-pipe  { background: var(--pipe);  border-left-color: var(--pipe-d); }
+  .day-blocks-list .b-row.zone-fam   { background: var(--fam);   border-left-color: var(--fam-d); }
+  .day-blocks-list .b-row.zone-rec   { background: var(--rec);   border-left-color: var(--rec-d); }
+  .day-blocks-list .b-row.zone-admin { background: var(--admin); border-left-color: var(--admin-d); }
+  .day-blocks-list .b-row.zone-none  { background: var(--bg-alt); }
+  .day-modal-footer {
+    padding: 10px 20px; border-top: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .day-modal-footer .meta { font-size: 11px; color: var(--muted); }
+
+  /* ============ MONTH GRID ============ */
+  .month-nav { display: flex; gap: 6px; align-items: center; }
+  .month-nav button {
+    padding: 4px 10px; font-weight: 700; font-size: 14px;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 6px; cursor: pointer;
+  }
+  .month-nav button:hover { background: var(--bg-alt); border-color: var(--navy); }
+  .month-grid {
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;
+  }
+  .month-grid .mh {
+    font-size: 10px; text-align: center; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.6px; padding: 6px 0;
+    font-weight: 700;
+  }
+  .month-cell {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 6px; padding: 6px 8px; min-height: 56px;
+    cursor: pointer; transition: all 0.12s;
+    display: flex; flex-direction: column;
+  }
+  .month-cell:hover { border-color: var(--navy); transform: translateY(-1px); }
+  .month-cell.outside { opacity: 0.35; }
+  .month-cell.today { border-color: var(--navy); border-width: 2px; padding: 5px 7px; }
+  .month-cell .dom { font-size: 13px; font-weight: 700; color: var(--text); }
+  .month-cell .indicators {
+    margin-top: auto; display: flex; gap: 3px; flex-wrap: wrap; padding-top: 4px;
+  }
+  .month-cell .indicators .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+  }
+  .dot.rocks   { background: var(--navy); }
+  .dot.journal { background: var(--good-d); }
+  .dot.nn      { background: var(--rec-d); }
+  .dot.notes   { background: var(--fam-d); }
+  .month-legend {
+    display: flex; gap: 14px; margin-top: 10px;
+    font-size: 11px; color: var(--muted); flex-wrap: wrap;
+  }
+  .month-legend .lg { display: flex; align-items: center; gap: 5px; }
+  .month-legend .dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  /* ============ CALENDAR EVENTS ============ */
+  .events-list { display: grid; gap: 8px; }
+  .event-row {
+    display: grid; grid-template-columns: 120px 1fr auto; gap: 12px;
+    padding: 10px 12px; border-radius: 8px; align-items: center;
+    background: var(--bg-alt); border: 1px solid var(--border);
+    border-left: 4px solid var(--border);
+  }
+  .event-row.tag-lcrm  { border-left-color: var(--deep-d);  background: var(--deep); }
+  .event-row.tag-helix { border-left-color: var(--pipe-d);  background: var(--pipe); }
+  .event-row.tag-fam   { border-left-color: var(--fam-d);   background: var(--fam); }
+  .event-row.now {
+    box-shadow: 0 0 0 2px var(--navy);
+  }
+  .event-time { font-weight: 700; font-size: 13px; font-variant-numeric: tabular-nums; }
+  .event-time .when-rel { font-weight: 400; font-size: 11px; color: var(--muted); display: block; }
+  .event-row.tag-lcrm .event-time .when-rel,
+  .event-row.tag-helix .event-time .when-rel { color: rgba(0,0,0,0.55); }
+  .event-title { font-size: 13px; font-weight: 600; line-height: 1.3; }
+  .event-meta { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .event-row.tag-lcrm .event-meta,
+  .event-row.tag-helix .event-meta { color: rgba(0,0,0,0.6); }
+  .event-chip {
+    display: inline-block; padding: 1px 7px; border-radius: 999px;
+    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+    margin-right: 6px; vertical-align: 1px;
+  }
+  .event-chip.lcrm { background: var(--deep-d); color: white; }
+  .event-chip.helix { background: var(--pipe-d); color: white; }
+  .event-chip.fam   { background: var(--fam-d);  color: white; }
+  .event-chip.untagged { background: var(--admin-d); color: white; }
+  .events-empty {
+    padding: 20px; text-align: center; color: var(--muted); font-size: 13px;
+    background: var(--bg-alt); border-radius: 8px; border: 1px dashed var(--border);
+  }
+  .events-empty strong { color: var(--text); display: block; margin-bottom: 4px; }
+  .events-empty code {
+    background: white; padding: 1px 6px; border-radius: 4px; font-size: 12px;
+    border: 1px solid var(--border);
+  }
+  .events-loading { padding: 16px; text-align: center; color: var(--muted); font-size: 13px; }
+  .events-error {
+    padding: 12px 14px; background: var(--bad); border: 1px solid var(--bad-d);
+    border-radius: 8px; color: var(--bad-d); font-size: 12px;
+  }
+
+  /* ============ SECTION COMMON ============ */
+  section.panel {
+    background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+    margin-bottom: 16px; box-shadow: var(--shadow); overflow: hidden;
+  }
+  section.panel.accent-fri { border-color: var(--rec-d); }
+  section.panel.accent-sun { border-color: var(--pipe-d); }
+  section.panel.collapsible .panel-head { cursor: pointer; user-select: none; }
+  section.panel.collapsible .panel-head:hover { background: #ECEEF3; }
+  section.panel.collapsible .panel-head .chev {
+    font-size: 14px; color: var(--muted); transition: transform 0.2s;
+    display: inline-block; margin-left: 6px;
+  }
+  section.panel.collapsible.collapsed .panel-head .chev { transform: rotate(-90deg); }
+  section.panel.collapsible.collapsed .panel-body { display: none; }
+  section.panel.collapsible.due .panel-head { background: var(--rec); }
+  section.panel.collapsible.due.accent-sun .panel-head { background: var(--pipe); }
+  section.panel.collapsible.due .panel-head h2::before {
+    content: '★'; color: var(--rec-d); margin-right: 6px;
+  }
+  section.panel.collapsible.due.accent-sun .panel-head h2::before {
+    color: var(--pipe-d);
+  }
+  .panel-head {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 16px; border-bottom: 1px solid var(--border); background: var(--bg-alt);
+  }
+  .panel-head h2 { margin: 0; color: var(--navy); font-size: 16px; }
+  .panel-head .pill {
+    background: var(--navy); color: white; padding: 2px 8px;
+    border-radius: 999px; font-size: 11px; font-weight: 600;
+  }
+  .panel-body { padding: 14px 16px; }
+
+  /* ============ TIME BLOCKS ============ */
+  .blocks { display: grid; gap: 6px; }
+  .block-row {
+    display: grid; grid-template-columns: 140px 130px 1fr;
+    gap: 10px; padding: 8px 10px; border-radius: 6px; align-items: center;
+    border-left: 4px solid transparent; background: var(--bg-alt);
+  }
+  .block-row.zone-deep   { border-left-color: var(--deep-d);  background: var(--deep); }
+  .block-row.zone-pipe   { border-left-color: var(--pipe-d);  background: var(--pipe); }
+  .block-row.zone-fam    { border-left-color: var(--fam-d);   background: var(--fam); }
+  .block-row.zone-rec    { border-left-color: var(--rec-d);   background: var(--rec); }
+  .block-row.zone-admin  { border-left-color: var(--admin-d); background: var(--admin); }
+  .block-row.zone-none   { border-left-color: var(--border);  background: var(--bg-alt); }
+  .block-row.current {
+    box-shadow: 0 0 0 2px var(--navy); transform: translateX(2px);
+  }
+  .block-time { font-weight: 700; font-size: 13px; color: var(--text); font-variant-numeric: tabular-nums; }
+  .block-name { font-weight: 600; font-size: 13px; }
+  .block-desc { font-size: 13px; color: var(--text); }
+  .block-row.current .block-time::before { content: '▶ '; color: var(--navy); }
+
+  /* ============ NON-NEGOTIABLES ============ */
+  .nn-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .nn-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; background: var(--bg-alt); border: 1px solid var(--border);
+    border-radius: 8px; cursor: pointer; user-select: none;
+    transition: all 0.15s;
+  }
+  .nn-item:hover { border-color: var(--navy); }
+  .nn-item input { width: 18px; height: 18px; cursor: pointer; flex-shrink: 0; }
+  .nn-item.done {
+    background: var(--good); border-color: var(--good-d);
+  }
+  .nn-item.done .nn-text { text-decoration: line-through; color: var(--good-d); }
+  .nn-text { font-size: 13px; font-weight: 600; }
+  .nn-text .sub { display: block; font-weight: 400; color: var(--muted); font-size: 11px; margin-top: 1px; }
+  .nn-item.done .nn-text .sub { color: var(--good-d); opacity: 0.7; }
+  .nn-streak {
+    margin-left: auto; font-size: 11px; color: var(--muted);
+    background: white; padding: 1px 6px; border-radius: 4px; border: 1px solid var(--border);
+  }
+  .nn-item.done .nn-streak { background: white; color: var(--good-d); border-color: var(--good-d); }
+
+  /* ============ WEEK GRID ============ */
+  .week-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  .week-day {
+    border: 1px solid var(--border); border-radius: 8px; padding: 8px 6px;
+    text-align: center; background: var(--bg);
+  }
+  .week-day.today { border-color: var(--navy); box-shadow: 0 0 0 2px rgba(31,58,95,0.15); }
+  .week-day .dow { font-size: 10px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted); }
+  .week-day .dom { font-size: 16px; font-weight: 700; color: var(--text); }
+  .week-day .workout {
+    font-size: 11px; font-weight: 600; margin-top: 4px;
+    padding: 2px 4px; border-radius: 4px; display: inline-block;
+  }
+  .week-day .workout.bike { background: var(--bike); color: var(--bike-d); }
+  .week-day .workout.lift { background: var(--lift); color: var(--lift-d); }
+  .week-day .workout.rest { background: var(--rest); color: var(--rest-d); }
+  .week-day .focus-tag { font-size: 10px; color: var(--muted); margin-top: 4px; line-height: 1.2; }
+
+  /* ============ FRIDAY WRAP / SUNDAY SETUP ============ */
+  .ritual { padding: 4px; }
+  .ritual .q {
+    background: var(--bg-alt); border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 12px; margin-bottom: 8px;
+  }
+  .ritual .q label { font-weight: 600; font-size: 13px; color: var(--text); display: block; margin-bottom: 6px; }
+  .ritual .q textarea, .ritual .q input[type=text] {
+    width: 100%; border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px;
+    font-family: inherit; font-size: 13px; background: white;
+  }
+  .ritual .q textarea { min-height: 50px; resize: vertical; }
+  .ritual .q .yesno { display: flex; gap: 16px; align-items: center; }
+  .ritual .q .yesno label { font-weight: 400; cursor: pointer; display: flex; gap: 4px; align-items: center; }
+  .ritual .actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
+  .ritual-when {
+    font-size: 12px; color: var(--muted); margin-bottom: 8px;
+    background: var(--bg-alt); padding: 6px 10px; border-radius: 6px; display: inline-block;
+  }
+
+  /* ============ REFERENCE ============ */
+  .reference { margin-top: 24px; padding-top: 16px; border-top: 2px solid var(--navy); }
+  .reference h2 { color: var(--navy); margin: 0 0 12px; font-size: 18px; }
+  .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 12px; flex-wrap: wrap; }
+  .tab {
+    background: none; border: none; border-bottom: 3px solid transparent;
+    padding: 8px 14px; cursor: pointer; font-weight: 600; color: var(--muted);
+    font-size: 13px; border-radius: 0;
+  }
+  .tab:hover { color: var(--text); background: none; }
+  .tab.active { color: var(--navy); border-bottom-color: var(--navy); }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  table.ref { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.ref th, table.ref td {
+    padding: 8px 10px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top;
+  }
+  table.ref th { background: var(--bg-alt); color: var(--navy); font-weight: 600; font-size: 12px; }
+  table.ref tr:last-child td { border-bottom: none; }
+
+  .zone-key { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 12px; }
+  .zone-key .zk { padding: 8px 10px; border-radius: 6px; border-left: 4px solid; }
+  .zone-key .zk h4 { margin: 0 0 2px; font-size: 13px; }
+  .zone-key .zk p { margin: 0; font-size: 12px; color: var(--text); }
+  .zk.deep { background: var(--deep); border-color: var(--deep-d); }
+  .zk.pipe { background: var(--pipe); border-color: var(--pipe-d); }
+  .zk.fam  { background: var(--fam);  border-color: var(--fam-d); }
+  .zk.rec  { background: var(--rec);  border-color: var(--rec-d); }
+
+  footer.notes {
+    margin-top: 24px; padding-top: 12px; border-top: 1px solid var(--border);
+    color: var(--muted); font-size: 12px;
+  }
+  .save-flash {
+    position: fixed; bottom: 20px; right: 20px;
+    background: var(--good-d); color: white; padding: 8px 16px; border-radius: 6px;
+    font-size: 13px; opacity: 0; transform: translateY(10px); transition: all 0.2s;
+    pointer-events: none; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+  .save-flash.show { opacity: 1; transform: translateY(0); }
+
+  @media (max-width: 720px) {
+    .rocks { grid-template-columns: 1fr; }
+    .nn-grid { grid-template-columns: 1fr; }
+    .week-grid { grid-template-columns: repeat(7, 1fr); }
+    .week-day .focus-tag { display: none; }
+    .block-row { grid-template-columns: 100px 1fr; }
+    .block-row .block-name { grid-column: 2; }
+    .block-row .block-desc { grid-column: 1 / -1; font-size: 12px; }
+    .today-stats { grid-template-columns: repeat(2, 1fr); width: 100%; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header class="app-header">
+    <div>
+      <h1>Blended Rhythm</h1>
+      <div class="subtitle">LCRM + Helix Aminos • 5 AM wake • two Big Rocks a day</div>
+    </div>
+    <div class="toolbar">
+      <span class="clock" id="liveClock"></span>
+      <button class="danger" id="resetBtn">Reset day</button>
+    </div>
+  </header>
+
+  <!-- TODAY HERO -->
+  <div class="today-card">
+    <div class="today-top">
+      <div class="today-left">
+        <div class="label">Today</div>
+        <div class="date" id="todayDate"></div>
+        <div class="focus" id="todayFocus"></div>
+      </div>
+      <div class="today-stats">
+        <div class="stat" id="statWorkout"><div class="v" id="statWorkoutV">—</div><div class="k">Workout</div></div>
+        <div class="stat" id="statOutreach"><div class="v" id="statOutreachV">—</div><div class="k">Outreach</div></div>
+        <div class="stat" id="statRocks"><div class="v" id="statRocksV">0/2</div><div class="k">Big Rocks</div></div>
+        <div class="stat" id="statNN"><div class="v" id="statNNV">0/6</div><div class="k">Non-neg</div></div>
+      </div>
+    </div>
+    <div class="rocks">
+      <div class="rock" id="rockLCRM">
+        <div class="rock-label">⚡ Big Rock — LCRM</div>
+        <input class="rock-input" type="text" data-rock="lcrm" placeholder="One thing that moves Lightning CRM today…" maxlength="120">
+        <label class="rock-check"><input type="checkbox" data-rock-done="lcrm"> Done</label>
+      </div>
+      <div class="rock" id="rockHelix">
+        <div class="rock-label">🧬 Big Rock — Helix Aminos</div>
+        <input class="rock-input" type="text" data-rock="helix" placeholder="One thing that moves Helix Aminos today…" maxlength="120">
+        <label class="rock-check"><input type="checkbox" data-rock-done="helix"> Done</label>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOMORROW SETUP -->
+  <div class="tomorrow-card">
+    <div class="tomorrow-head">
+      <div class="label">📅 Tomorrow's Big Rocks <span class="hint">auto-saves as you type</span></div>
+      <div style="display:flex; gap:10px; align-items:center;">
+        <span class="save-status" id="tomorrowStatus">✓ Saved</span>
+        <span class="date" id="tomorrowDate">—</span>
+      </div>
+    </div>
+    <div class="tomorrow-rocks">
+      <div class="tomorrow-rock">
+        <div class="rock-label">⚡ LCRM</div>
+        <input type="text" data-tomorrow-rock="lcrm" placeholder="Pre-load tomorrow's LCRM rock…" maxlength="120">
+      </div>
+      <div class="tomorrow-rock">
+        <div class="rock-label">🧬 Helix</div>
+        <input type="text" data-tomorrow-rock="helix" placeholder="Pre-load tomorrow's Helix rock…" maxlength="120">
+      </div>
+    </div>
+  </div>
+
+  <!-- CALENDAR EVENTS -->
+  <section class="panel" id="calendarPanel">
+    <div class="panel-head">
+      <h2>Today's Calendar</h2>
+      <div class="head-right">
+        <span class="pill" id="eventsPill">—</span>
+        <button class="journal-btn" id="journalBtn" title="Open today's journal entry">📝 Journal</button>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div id="eventsContainer">
+        <div class="events-loading">Loading today's events…</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TIME BLOCKS -->
+  <section class="panel">
+    <div class="panel-head">
+      <h2>Today's Time Blocks</h2>
+      <span class="pill" id="currentBlockPill">—</span>
+    </div>
+    <div class="panel-body">
+      <div class="blocks" id="blocksList"></div>
+    </div>
+  </section>
+
+  <!-- NON-NEGOTIABLES -->
+  <section class="panel">
+    <div class="panel-head">
+      <h2>Today's Non-Negotiables</h2>
+      <span class="pill" id="nnPill">0/6</span>
+    </div>
+    <div class="panel-body">
+      <div class="nn-grid" id="nnGrid"></div>
+    </div>
+  </section>
+
+  <!-- WEEK AT A GLANCE -->
+  <section class="panel">
+    <div class="panel-head">
+      <h2>This Week</h2>
+      <span class="pill" id="weekPill"></span>
+    </div>
+    <div class="panel-body">
+      <div class="week-grid" id="weekGrid"></div>
+      <div style="font-size: 11px; color: var(--muted); margin-top: 8px;">Click any day to view or edit its rocks, journal, notes, and schedule.</div>
+    </div>
+  </section>
+
+  <!-- MONTH GRID -->
+  <section class="panel">
+    <div class="panel-head">
+      <h2>This Month</h2>
+      <div class="month-nav">
+        <button id="monthPrev" title="Previous month">‹</button>
+        <span class="pill" id="monthLabel">—</span>
+        <button id="monthNext" title="Next month">›</button>
+        <button id="monthToday" title="Jump to current month" style="margin-left:6px;">Today</button>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="month-grid" id="monthGrid"></div>
+      <div class="month-legend">
+        <div class="lg"><span class="dot rocks"></span>Big Rocks set</div>
+        <div class="lg"><span class="dot journal"></span>Journal entry</div>
+        <div class="lg"><span class="dot nn"></span>Non-negotiables</div>
+        <div class="lg"><span class="dot notes"></span>Notes</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FRIDAY WRAP -->
+  <section class="panel accent-fri collapsible" id="fridayWrapPanel">
+    <div class="panel-head">
+      <h2>The Friday Wrap</h2>
+      <div class="head-right">
+        <span class="pill" style="background: var(--rec-d)">5-min review</span>
+        <span class="chev">▾</span>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="ritual-when" id="fridayWhen"></div>
+      <div class="ritual" id="fridayRitual"></div>
+    </div>
+  </section>
+
+  <!-- SUNDAY SETUP -->
+  <section class="panel accent-sun collapsible" id="sundaySetupPanel">
+    <div class="panel-head">
+      <h2>Sunday Setup</h2>
+      <div class="head-right">
+        <span class="pill" style="background: var(--pipe-d)">10-min plan</span>
+        <span class="chev">▾</span>
+      </div>
+    </div>
+    <div class="panel-body">
+      <div class="ritual-when" id="sundayWhen"></div>
+      <div class="ritual" id="sundayRitual"></div>
+    </div>
+  </section>
+
+  <!-- REFERENCE -->
+  <div class="reference">
+    <h2>Reference</h2>
+    <div class="tabs">
+      <button class="tab active" data-tab="principles">Principles</button>
+      <button class="tab" data-tab="template">Daily Template</button>
+      <button class="tab" data-tab="weekly">Weekly Rhythm</button>
+      <button class="tab" data-tab="zones">Zones</button>
+      <button class="tab" data-tab="nonneg">Non-Negotiables</button>
+    </div>
+    <div class="tab-panel active" data-panel="principles" id="panel-principles"></div>
+    <div class="tab-panel" data-panel="template" id="panel-template"></div>
+    <div class="tab-panel" data-panel="weekly" id="panel-weekly"></div>
+    <div class="tab-panel" data-panel="zones" id="panel-zones"></div>
+    <div class="tab-panel" data-panel="nonneg" id="panel-nonneg"></div>
+  </div>
+
+  <footer class="notes">
+    All entries save locally on this machine. Open this page each morning, type your two Big Rocks, check off as the day goes. Friday afternoon and Sunday show extra prompts automatically.
+  </footer>
+</div>
+
+<div class="save-flash" id="saveFlash">Saved</div>
+
+<!-- DAY MODAL -->
+<div class="day-modal-backdrop" id="dayModal">
+  <div class="day-modal">
+    <div class="day-modal-header">
+      <div>
+        <h2 id="dayModalTitle">—</h2>
+        <div class="date-sub" id="dayModalSubtitle"></div>
+      </div>
+      <button class="close" id="dayModalClose" title="Close (Esc)">×</button>
+    </div>
+    <div class="day-modal-body">
+      <div class="day-section">
+        <h3>Big Rocks</h3>
+        <div class="day-rocks-grid">
+          <div class="day-rock-item">
+            <div class="lbl">⚡ LCRM</div>
+            <input type="text" data-day-rock="lcrm" placeholder="LCRM Big Rock…" maxlength="120">
+            <label class="dn"><input type="checkbox" data-day-rock-done="lcrm"> Done</label>
+          </div>
+          <div class="day-rock-item">
+            <div class="lbl">🧬 Helix</div>
+            <input type="text" data-day-rock="helix" placeholder="Helix Big Rock…" maxlength="120">
+            <label class="dn"><input type="checkbox" data-day-rock-done="helix"> Done</label>
+          </div>
+        </div>
+      </div>
+      <div class="day-section">
+        <h3>Non-Negotiables</h3>
+        <div class="day-nn-grid" id="dayModalNN"></div>
+      </div>
+      <div class="day-section">
+        <h3>Notes</h3>
+        <textarea id="dayNotes" placeholder="Day-specific notes — observations, follow-ups, anything that doesn't fit elsewhere."></textarea>
+      </div>
+      <div class="day-section">
+        <h3>Journal</h3>
+        <textarea id="dayJournalText" placeholder="Journal entry for this day."></textarea>
+      </div>
+      <div class="day-section">
+        <h3>Schedule</h3>
+        <div class="day-blocks-list" id="dayBlocksList"></div>
+      </div>
+    </div>
+    <div class="day-modal-footer">
+      <span class="meta" id="dayModalMeta">Auto-saves as you type</span>
+      <button class="primary" id="dayModalDone">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- JOURNAL MODAL -->
+<div class="journal-modal-backdrop" id="journalModal">
+  <div class="journal-modal">
+    <div class="journal-modal-header">
+      <div>
+        <h2>Journal</h2>
+        <div class="date-sub" id="journalDateSub"></div>
+      </div>
+      <button class="close" id="journalClose" title="Close (Esc)">×</button>
+    </div>
+    <div class="journal-modal-body">
+      <div class="prior-entry" id="priorEntry" style="display:none;">
+        <div class="prior-label"><span id="priorLabel">Yesterday</span><span class="when" id="priorWhen"></span></div>
+        <div class="prior-text" id="priorText"></div>
+      </div>
+      <textarea id="journalText" placeholder="What's on your mind this morning?"></textarea>
+      <div class="prompts">
+        <strong>Prompts if you're stuck:</strong>
+        What's the win from yesterday? What am I avoiding today? What does success look like by 9 PM? Who do I owe a reply or update to? What's one thing I'm grateful for?
+      </div>
+    </div>
+    <div class="journal-modal-footer">
+      <span class="journal-meta" id="journalMeta"></span>
+      <div class="journal-actions">
+        <button id="journalCancel">Cancel</button>
+        <button class="primary" id="journalSave">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// CONFIG & DATA
+// ============================================================
+const STORAGE_KEY = "blended-rhythm-v1";
+const DOW = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const DOW_FULL = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+
+// Default workout rotation — must mirror the workout-schedule artifact
+// Mon=Bike, Tue=Lift, Wed=Bike, Thu=Lift, Fri=Bike, Sat=Lift, Sun=Rest
+const WORKOUT_BY_DOW = ["Bike", "Lift", "Bike", "Lift", "Bike", "Lift", "Rest"];
+
+// Time blocks (minutes since midnight)
+function tm(h, m) { return h * 60 + (m || 0); }
+
+// Unified weekday template — workout always at 11:30–1:00 PM regardless of bike/lift.
+const TIME_BLOCKS_WEEKDAY = [
+  { start: tm(5,0),   end: tm(5,15),  zone: "none",  name: "Wake",             desc: "Alarm. 16 oz water. 2 min mobility. No phone yet." },
+  { start: tm(5,15),  end: tm(5,45),  zone: "none",  name: "Plan",             desc: "Coffee. Journal. Pick today's Big Rocks (LCRM + Helix)." },
+  { start: tm(5,45),  end: tm(6,45),  zone: "deep",  name: "Deep Work #0",     desc: "LCRM bonus hour — hardest problem of the week. Pre-family, zero interruptions." },
+  { start: tm(6,45),  end: tm(7,15),  zone: "none",  name: "Shower / Breakfast", desc: "Reset, refuel." },
+  { start: tm(7,15),  end: tm(8,30),  zone: "fam",   name: "Family AM",        desc: "Kids morning routine. School drop-off. Phone away." },
+  { start: tm(8,30),  end: tm(11,0),  zone: "deep",  name: "Deep Work #1",     desc: "LCRM client delivery — Apex, LWC, Flow. DND on. No Slack, no email." },
+  { start: tm(11,0),  end: tm(11,30), zone: "pipe",  name: "Outreach",         desc: "1 cold DM • comment on 3 posts • touch one warm lead. Log it." },
+  { start: tm(11,30), end: tm(13,0),  zone: "rec",   name: "Workout",          desc: "Day-specific workout (see today's task)." },
+  { start: tm(13,0),  end: tm(13,30), zone: "none",  name: "Lunch",            desc: "Real meal. Protein + carbs to refuel." },
+  { start: tm(13,30), end: tm(15,30), zone: "deep",  name: "Deep Work #2",     desc: "Helix Aminos build — brand, product, supplier, compliance, copy." },
+  { start: tm(15,30), end: tm(16,0),  zone: "admin", name: "Admin",            desc: "Email batch. Invoicing. Subcontractors. Expenses. LLC paperwork." },
+  { start: tm(16,0),  end: tm(16,30), zone: "rec",   name: "House Reset",      desc: "Day-specific cleaning rotation (see today's task)." },
+  { start: tm(16,30), end: tm(17,30), zone: "fam",   name: "Family PM",        desc: "School pickup. Snack. Kid logistics. Baseball gear prep." },
+  { start: tm(17,30), end: tm(19,30), zone: "fam",   name: "Dinner / Evening", desc: "Dinner. Practice or games. Bedtime routine. Phone in another room." },
+  { start: tm(19,30), end: tm(20,30), zone: "none",  name: "Flex Block",       desc: "Choose one: Helix evening sprint, woodworking, reading, partner time." },
+  { start: tm(20,30), end: tm(21,0),  zone: "none",  name: "Shutdown",         desc: "Write tomorrow's Big Rocks. Dim lights. No screens." },
+  { start: tm(21,0),  end: tm(21,30), zone: "none",  name: "Lights out",       desc: "Target 8 hours. Wake 5:00 AM." },
+];
+
+function blocksForDate(date) {
+  return TIME_BLOCKS_WEEKDAY;
+}
+
+// Day-specific workout descriptions — same time slot, different content.
+const WORKOUT_DESCS = {
+  Mon: "🚴 Bike A — Easy / Recovery (~60 min). Per workout tracker. Includes prep + shower.",
+  Tue: "🏋️ Lift A — Push. Bench, OHP, incline DB, dips/pushups, triceps. Per workout tracker.",
+  Wed: "🚴 Bike B — Tempo (~60 min). 20–30 min in tempo + 10 min WU/CD. Includes prep + shower.",
+  Thu: "🏋️ Lift B — Pull. Deadlift, pull-ups, row, face pulls, curl. Per workout tracker.",
+  Fri: "🚴 Bike C — Intervals (~60 min). 6 × 3 min hard / 3 min easy. Includes prep + shower.",
+  Sat: "🏋️ Lift C — Legs. Squat, RDL, lunges, leg curl, calves. Per workout tracker.",
+  Sun: "🛌 Rest — walk, mobility, foam roll. Active recovery only.",
+};
+function workoutDescForDate(date) {
+  return WORKOUT_DESCS[DOW[(date.getDay() + 6) % 7]] || "";
+}
+
+// House Reset rotation — Zach's M-F cleaning tasks from the House Plan.
+const HOUSE_RESET_TASKS = {
+  Mon: "Walk-through trash bins (kitchen, half bath) — 5 min. Use the rest as a tidy buffer or kid-room help.",
+  Tue: "Half bath clean — sink, toilet, mirror, floor (~15 min). Buffer remaining for any catch-up tidy.",
+  Wed: "Office deep tidy + paperwork sweep (~15 min). File or shred what you've been avoiding.",
+  Thu: "Floors helper or kids' room buffer. Open slot — fix whatever drifted Mon–Wed.",
+  Fri: "Trash + recycling to curb before pickup (~10 min). Tidy the office so Monday starts clean.",
+  Sat: "Saturday family chore block runs in the morning — this slot is free.",
+  Sun: "Rest day — outside work and Sunday Setup happen elsewhere in the day.",
+};
+function houseResetForDate(date) {
+  const dow = (date.getDay() + 6) % 7;
+  return HOUSE_RESET_TASKS[DOW[dow]] || "";
+}
+
+// Weekly focus (matches the docx)
+const WEEK_FOCUS = {
+  Mon: "LCRM kickoff + Helix supplier check",
+  Tue: "LCRM delivery + Helix brand/content",
+  Wed: "LCRM delivery + Helix legal/launch",
+  Thu: "LCRM delivery + Helix audience/copy",
+  Fri: "LCRM AM • Errands + Friday Wrap PM",
+  Sat: "Flex — DIY, shop, Helix creative, family",
+  Sun: "Family + Sunday Setup",
+};
+
+// Non-negotiables for a typical weekday
+const NN_ITEMS = [
+  { id: "workout",  label: "Workout",     sub: "Bike M/W/F · Lift T/Th/Sa · Rest Sun" },
+  { id: "outreach", label: "Outreach",    sub: "1 DM + 3 comments + 1 warm lead" },
+  { id: "famAM",    label: "Family AM",   sub: "Kids morning + drop-off, phone away" },
+  { id: "famPM",    label: "Family PM",   sub: "Dinner + bedtime, phone away" },
+  { id: "helixStep",label: "Helix step",  sub: "Move Helix forward today (or this week)" },
+  { id: "shutdown", label: "Shutdown",    sub: "9 PM lights out, tomorrow's rocks written" },
+];
+
+// ============================================================
+// STATE
+// ============================================================
+function loadState() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); }
+  catch { return {}; }
+}
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  flashSaved();
+}
+let state = loadState();
+
+function dateKey(d) {
+  const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+function todayKey() { return dateKey(new Date()); }
+function weekKey(d) {
+  const x = mondayOf(d); return dateKey(x);
+}
+function mondayOf(d) {
+  const x = new Date(d);
+  const dow = x.getDay();
+  const offset = dow === 0 ? -6 : 1 - dow;
+  x.setDate(x.getDate() + offset);
+  x.setHours(0,0,0,0);
+  return x;
+}
+function addDays(d, n) { const x = new Date(d); x.setDate(x.getDate()+n); return x; }
+function dayEntry(key) {
+  if (!state.days) state.days = {};
+  if (!state.days[key]) state.days[key] = {};
+  return state.days[key];
+}
+function weekEntry(key) {
+  if (!state.weeks) state.weeks = {};
+  if (!state.weeks[key]) state.weeks[key] = {};
+  return state.weeks[key];
+}
+
+// ============================================================
+// CLOCK / CURRENT BLOCK
+// ============================================================
+function currentBlock(now) {
+  const mins = now.getHours() * 60 + now.getMinutes();
+  const blocks = blocksForDate(now);
+  for (const b of blocks) {
+    if (mins >= b.start && mins < b.end) return b;
+  }
+  return null;
+}
+function fmtTime(m) {
+  let h = Math.floor(m/60), mm = m % 60;
+  const am = h < 12 ? "AM" : "PM";
+  let h12 = h % 12; if (h12 === 0) h12 = 12;
+  return `${h12}:${String(mm).padStart(2,"0")} ${am}`;
+}
+function fmtTimeRange(b) { return `${fmtTime(b.start)}–${fmtTime(b.end)}`; }
+
+// ============================================================
+// RENDER — TODAY HEADER
+// ============================================================
+function renderHeader() {
+  const now = new Date();
+  const dow = (now.getDay() + 6) % 7;
+  const dayName = DOW_FULL[dow];
+  const dateStr = now.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+  document.getElementById("todayDate").textContent = `${dayName}, ${dateStr}`;
+  document.getElementById("todayFocus").textContent = WEEK_FOCUS[DOW[dow]];
+  updateClock();
+}
+function updateClock() {
+  const now = new Date();
+  const cur = currentBlock(now);
+  document.getElementById("liveClock").textContent =
+    now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+  document.getElementById("currentBlockPill").textContent = cur ? cur.name : "Off-hours";
+}
+
+// ============================================================
+// RENDER — BIG ROCKS + STATS
+// ============================================================
+function renderRocks() {
+  const e = dayEntry(todayKey());
+  const rocks = e.rocks || {};
+  document.querySelector('[data-rock="lcrm"]').value = rocks.lcrm || "";
+  document.querySelector('[data-rock="helix"]').value = rocks.helix || "";
+  document.querySelector('[data-rock-done="lcrm"]').checked = !!rocks.lcrmDone;
+  document.querySelector('[data-rock-done="helix"]').checked = !!rocks.helixDone;
+  document.getElementById("rockLCRM").classList.toggle("done", !!rocks.lcrmDone);
+  document.getElementById("rockHelix").classList.toggle("done", !!rocks.helixDone);
+  updateStats();
+}
+function saveRocks() {
+  const e = dayEntry(todayKey());
+  e.rocks = {
+    lcrm: document.querySelector('[data-rock="lcrm"]').value,
+    helix: document.querySelector('[data-rock="helix"]').value,
+    lcrmDone: document.querySelector('[data-rock-done="lcrm"]').checked,
+    helixDone: document.querySelector('[data-rock-done="helix"]').checked,
+  };
+  saveState();
+  document.getElementById("rockLCRM").classList.toggle("done", e.rocks.lcrmDone);
+  document.getElementById("rockHelix").classList.toggle("done", e.rocks.helixDone);
+  updateStats();
+}
+
+// ============================================================
+// TOMORROW SETUP
+// ============================================================
+function tomorrowKey() {
+  const t = new Date(); t.setDate(t.getDate() + 1); return dateKey(t);
+}
+function renderTomorrow() {
+  const tk = tomorrowKey();
+  const e = dayEntry(tk);
+  const rocks = e.rocks || {};
+  document.querySelector('[data-tomorrow-rock="lcrm"]').value = rocks.lcrm || "";
+  document.querySelector('[data-tomorrow-rock="helix"]').value = rocks.helix || "";
+  const t = new Date(); t.setDate(t.getDate() + 1);
+  document.getElementById("tomorrowDate").textContent =
+    t.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" });
+}
+let tomorrowStatusTimer = null;
+function flashTomorrowSaved() {
+  const el = document.getElementById("tomorrowStatus");
+  const now = new Date();
+  el.textContent = "✓ Saved at " + now.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+  el.classList.add("shown");
+  if (tomorrowStatusTimer) clearTimeout(tomorrowStatusTimer);
+  tomorrowStatusTimer = setTimeout(() => el.classList.remove("shown"), 2500);
+}
+
+function saveTomorrow() {
+  const tk = tomorrowKey();
+  const e = dayEntry(tk);
+  const lcrm = document.querySelector('[data-tomorrow-rock="lcrm"]').value;
+  const helix = document.querySelector('[data-tomorrow-rock="helix"]').value;
+  if (!e.rocks) e.rocks = {};
+  e.rocks.lcrm = lcrm;
+  e.rocks.helix = helix;
+  // If everything in rocks is empty/falsy, drop it. If the day record then has nothing, drop that too.
+  const r = e.rocks;
+  if (!r.lcrm && !r.helix && !r.lcrmDone && !r.helixDone) delete e.rocks;
+  if (Object.keys(e).length === 0 && state.days) delete state.days[tk];
+  saveState();
+  flashTomorrowSaved();
+}
+
+function updateStats() {
+  const e = dayEntry(todayKey());
+  const nn = e.nn || {};
+  const rocks = e.rocks || {};
+  const dow = (new Date().getDay() + 6) % 7;
+  const workoutType = WORKOUT_BY_DOW[dow];
+
+  const workoutDone = !!nn.workout;
+  const outreachDone = !!nn.outreach;
+  const nnCount = NN_ITEMS.filter(n => nn[n.id]).length;
+  const rockCount = (rocks.lcrmDone ? 1 : 0) + (rocks.helixDone ? 1 : 0);
+
+  const wStat = document.getElementById("statWorkout");
+  wStat.className = "stat " + (workoutDone ? "good" : (workoutType === "Rest" ? "" : "bad"));
+  document.getElementById("statWorkoutV").textContent = workoutDone ? "✓" : (workoutType === "Rest" ? "—" : "✗");
+
+  const oStat = document.getElementById("statOutreach");
+  oStat.className = "stat " + (outreachDone ? "good" : "bad");
+  document.getElementById("statOutreachV").textContent = outreachDone ? "✓" : "✗";
+
+  document.getElementById("statRocksV").textContent = `${rockCount}/2`;
+  document.getElementById("statNNV").textContent = `${nnCount}/${NN_ITEMS.length}`;
+  document.getElementById("nnPill").textContent = `${nnCount}/${NN_ITEMS.length}`;
+}
+
+// ============================================================
+// DAY MODAL — view/edit any day's data
+// ============================================================
+let dayModalDate = null;
+const dayModal = document.getElementById("dayModal");
+
+function openDayModal(date) {
+  dayModalDate = new Date(date); dayModalDate.setHours(0,0,0,0);
+  const key = dateKey(dayModalDate);
+  const e = dayEntry(key);
+  const dow = (dayModalDate.getDay() + 6) % 7;
+  const workout = WORKOUT_BY_DOW[dow];
+
+  document.getElementById("dayModalTitle").textContent =
+    dayModalDate.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+  document.getElementById("dayModalSubtitle").textContent =
+    `${workout} day · ${WEEK_FOCUS[DOW[dow]]}`;
+
+  // Rocks
+  const rocks = e.rocks || {};
+  document.querySelector('[data-day-rock="lcrm"]').value = rocks.lcrm || "";
+  document.querySelector('[data-day-rock="helix"]').value = rocks.helix || "";
+  document.querySelector('[data-day-rock-done="lcrm"]').checked = !!rocks.lcrmDone;
+  document.querySelector('[data-day-rock-done="helix"]').checked = !!rocks.helixDone;
+
+  // Non-negotiables
+  const nn = e.nn || {};
+  document.getElementById("dayModalNN").innerHTML = NN_ITEMS.map(item => `
+    <label data-day-nn="${item.id}">
+      <input type="checkbox" ${nn[item.id] ? 'checked' : ''}>
+      <span><strong>${item.label}</strong> <span style="color:var(--muted);font-weight:400;">— ${item.sub}</span></span>
+    </label>
+  `).join("");
+
+  // Notes + Journal
+  document.getElementById("dayNotes").value = e.notes || "";
+  document.getElementById("dayJournalText").value = e.journal || "";
+
+  // Schedule for this day
+  const blocks = blocksForDate(dayModalDate);
+  const houseTask = houseResetForDate(dayModalDate);
+  const workoutDesc = workoutDescForDate(dayModalDate);
+  document.getElementById("dayBlocksList").innerHTML = blocks.map(b => {
+    const desc = descForBlock(b, dayModalDate, houseTask, workoutDesc);
+    return `<div class="b-row zone-${b.zone}"><span class="t">${fmtTimeRange(b)}</span><span><strong>${b.name}</strong> — ${desc}</span></div>`;
+  }).join("");
+
+  // Meta
+  if (e.journalUpdated) {
+    document.getElementById("dayModalMeta").textContent =
+      "Last journal save: " + new Date(e.journalUpdated).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+  } else {
+    document.getElementById("dayModalMeta").textContent = "Auto-saves as you type";
+  }
+
+  dayModal.classList.add("open");
+}
+
+function closeDayModal() {
+  dayModal.classList.remove("open");
+  dayModalDate = null;
+  // Re-render anything that might have changed (today's view, week, month)
+  renderRocks();
+  renderTomorrow();
+  renderNN();
+  renderWeek();
+  renderMonth();
+  renderJournalBtn();
+}
+
+function saveDayModalField() {
+  if (!dayModalDate) return;
+  const key = dateKey(dayModalDate);
+  const e = dayEntry(key);
+
+  // Rocks
+  const lcrm = document.querySelector('[data-day-rock="lcrm"]').value;
+  const helix = document.querySelector('[data-day-rock="helix"]').value;
+  const lcrmDone = document.querySelector('[data-day-rock-done="lcrm"]').checked;
+  const helixDone = document.querySelector('[data-day-rock-done="helix"]').checked;
+  if (lcrm || helix || lcrmDone || helixDone) {
+    e.rocks = { lcrm, helix, lcrmDone, helixDone };
+  } else {
+    delete e.rocks;
+  }
+
+  // Non-negotiables
+  const nnUpdates = {};
+  document.querySelectorAll('#dayModalNN [data-day-nn]').forEach(label => {
+    const id = label.dataset.dayNn;
+    if (label.querySelector('input').checked) nnUpdates[id] = true;
+  });
+  if (Object.keys(nnUpdates).length) e.nn = nnUpdates;
+  else delete e.nn;
+
+  // Notes
+  const notes = document.getElementById("dayNotes").value;
+  if (notes && notes.trim()) e.notes = notes; else delete e.notes;
+
+  // Journal
+  const journal = document.getElementById("dayJournalText").value;
+  if (journal && journal.trim()) {
+    if (journal !== (e.journal || "")) e.journalUpdated = new Date().toISOString();
+    e.journal = journal;
+  } else {
+    delete e.journal;
+    delete e.journalUpdated;
+  }
+
+  if (Object.keys(e).length === 0 && state.days) delete state.days[key];
+  saveState();
+
+  if (e.journalUpdated) {
+    document.getElementById("dayModalMeta").textContent =
+      "Last journal save: " + new Date(e.journalUpdated).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+  }
+}
+
+// Wire modal events (one-time)
+document.getElementById("dayModalClose").addEventListener("click", closeDayModal);
+document.getElementById("dayModalDone").addEventListener("click", closeDayModal);
+dayModal.addEventListener("click", e => { if (e.target === dayModal) closeDayModal(); });
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && dayModal.classList.contains("open")) closeDayModal();
+});
+document.querySelector('[data-day-rock="lcrm"]').addEventListener('input', saveDayModalField);
+document.querySelector('[data-day-rock="helix"]').addEventListener('input', saveDayModalField);
+document.querySelector('[data-day-rock-done="lcrm"]').addEventListener('change', saveDayModalField);
+document.querySelector('[data-day-rock-done="helix"]').addEventListener('change', saveDayModalField);
+document.getElementById("dayNotes").addEventListener('input', saveDayModalField);
+document.getElementById("dayJournalText").addEventListener('input', saveDayModalField);
+document.getElementById("dayModalNN").addEventListener('change', e => {
+  if (e.target.tagName === 'INPUT') saveDayModalField();
+});
+
+// ============================================================
+// MONTH GRID
+// ============================================================
+let monthOffset = 0;  // 0 = current month
+
+function dayCellHtml(d, outside) {
+  const dk = dateKey(d);
+  const e = (state.days || {})[dk] || {};
+  const isToday = dk === todayKey();
+  const dots = [];
+  if (e.rocks && (e.rocks.lcrm || e.rocks.helix || e.rocks.lcrmDone || e.rocks.helixDone)) dots.push('rocks');
+  if (e.journal) dots.push('journal');
+  if (e.nn && Object.keys(e.nn).length) dots.push('nn');
+  if (e.notes) dots.push('notes');
+  return `
+    <div class="month-cell ${outside ? 'outside' : ''} ${isToday ? 'today' : ''}" data-date="${dk}">
+      <div class="dom">${d.getDate()}</div>
+      <div class="indicators">
+        ${dots.map(c => `<span class="dot ${c}" title="${c}"></span>`).join("")}
+      </div>
+    </div>
+  `;
+}
+
+function renderMonth() {
+  const today = new Date();
+  const target = new Date(today.getFullYear(), today.getMonth() + monthOffset, 1);
+  const monthName = target.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+  document.getElementById("monthLabel").textContent = monthName;
+
+  const firstDow = (target.getDay() + 6) % 7;  // 0 = Mon
+  const lastDay = new Date(target.getFullYear(), target.getMonth() + 1, 0).getDate();
+
+  let html = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]
+    .map(d => `<div class="mh">${d}</div>`).join("");
+
+  // Leading days from previous month
+  for (let i = firstDow; i > 0; i--) {
+    const d = new Date(target.getFullYear(), target.getMonth(), 1 - i);
+    html += dayCellHtml(d, true);
+  }
+  // Current month
+  for (let dom = 1; dom <= lastDay; dom++) {
+    const d = new Date(target.getFullYear(), target.getMonth(), dom);
+    html += dayCellHtml(d, false);
+  }
+  // Trailing days
+  const used = firstDow + lastDay;
+  const trail = (7 - (used % 7)) % 7;
+  for (let i = 1; i <= trail; i++) {
+    const d = new Date(target.getFullYear(), target.getMonth() + 1, i);
+    html += dayCellHtml(d, true);
+  }
+
+  const grid = document.getElementById("monthGrid");
+  grid.innerHTML = html;
+  grid.querySelectorAll('.month-cell').forEach(el => {
+    el.addEventListener('click', () => {
+      const dk = el.dataset.date;
+      const [y, m, d] = dk.split('-').map(Number);
+      openDayModal(new Date(y, m - 1, d));
+    });
+  });
+}
+
+document.getElementById("monthPrev").addEventListener("click", () => { monthOffset--; renderMonth(); });
+document.getElementById("monthNext").addEventListener("click", () => { monthOffset++; renderMonth(); });
+document.getElementById("monthToday").addEventListener("click", () => { monthOffset = 0; renderMonth(); });
+
+// ============================================================
+// CALENDAR EVENTS (Google Calendar via MCP)
+// ============================================================
+const CAL_TOOL = "mcp__2237753d-b1a7-4519-8ac0-b8ffc94c7731__list_events";
+
+function isoStartOfDay(d) {
+  const x = new Date(d); x.setHours(0,0,0,0);
+  return x.toISOString();
+}
+function isoEndOfDay(d) {
+  const x = new Date(d); x.setHours(23,59,59,999);
+  return x.toISOString();
+}
+
+// Parse [LCRM:Permutive] or [Helix:Brand] from event title/description.
+// Returns { tag: 'lcrm'|'helix'|'fam'|null, project: 'Permutive'|... }
+function parseEventTag(ev) {
+  const haystack = `${ev.summary || ""}  ${ev.description || ""}`;
+  const m = haystack.match(/\[(LCRM|Helix|FAM|Family)(?::([^\]]+))?\]/i);
+  if (!m) return { tag: null, project: null };
+  const t = m[1].toLowerCase();
+  const tag = (t === "family" || t === "fam") ? "fam"
+            : (t === "lcrm")  ? "lcrm"
+            : (t === "helix") ? "helix" : null;
+  return { tag, project: (m[2] || "").trim() || null };
+}
+
+function stripTag(s) {
+  return (s || "").replace(/\[(LCRM|Helix|FAM|Family)(?::[^\]]+)?\]\s*/gi, "").trim();
+}
+
+function eventTime(ev) {
+  // Returns { start: Date|null, end: Date|null, allDay: bool }
+  const s = ev.start || {}, e = ev.end || {};
+  if (s.date && !s.dateTime) {
+    return { start: new Date(s.date + "T00:00:00"), end: e.date ? new Date(e.date + "T00:00:00") : null, allDay: true };
+  }
+  return {
+    start: s.dateTime ? new Date(s.dateTime) : null,
+    end: e.dateTime ? new Date(e.dateTime) : null,
+    allDay: false,
+  };
+}
+
+function fmtClock(d) {
+  return d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+}
+function fmtRel(start, now) {
+  const diff = (start - now) / 60000; // minutes
+  if (diff < -60) return "earlier today";
+  if (diff < -1)  return `${Math.abs(Math.round(diff))} min ago`;
+  if (diff <= 1)  return "now";
+  if (diff < 60)  return `in ${Math.round(diff)} min`;
+  const hours = Math.round(diff / 60 * 10) / 10;
+  return `in ${hours} hr`;
+}
+
+async function fetchTodayEvents() {
+  if (!window.cowork || typeof window.cowork.callMcpTool !== "function") {
+    return { unavailable: true };
+  }
+  try {
+    const start = new Date(); start.setHours(0,0,0,0);
+    const end = new Date();   end.setHours(23,59,59,999);
+    const res = await window.cowork.callMcpTool(CAL_TOOL, {
+      startTime: start.toISOString(),
+      endTime: end.toISOString(),
+      orderBy: "startTime",
+      pageSize: 50,
+    });
+    // Defensive parse: response may be { items: [...] } directly, or wrapped
+    let data = res;
+    if (res && res.content && Array.isArray(res.content)) {
+      // Some MCP wrappers return { content: [{ type:'text', text:'...' }] }
+      const first = res.content.find(c => c && c.text);
+      if (first) { try { data = JSON.parse(first.text); } catch { data = res; } }
+    }
+    const items = (data && Array.isArray(data.items)) ? data.items : [];
+    return { events: items };
+  } catch (err) {
+    return { error: (err && err.message) || String(err) };
+  }
+}
+
+function renderEvents(result) {
+  const container = document.getElementById("eventsContainer");
+  const pill = document.getElementById("eventsPill");
+
+  if (result.unavailable) {
+    pill.textContent = "Desktop only";
+    pill.style.background = "var(--admin-d)";
+    container.innerHTML = `<div class="events-empty"><strong>Calendar lives on the desktop version.</strong>You'll see your tagged Google events when you open this in the Cowork app on your laptop. The rest of this page (rocks, journal, non-negs, schedule) works fine on phone.</div>`;
+    return;
+  }
+  if (result.error) {
+    pill.textContent = "Error";
+    pill.style.background = "var(--bad-d)";
+    container.innerHTML = `<div class="events-error">Couldn't load calendar: ${result.error}</div>`;
+    return;
+  }
+
+  const events = (result.events || []).filter(ev => {
+    // Filter out cancelled / hidden events
+    if (ev.status === "cancelled") return false;
+    return true;
+  });
+
+  pill.style.background = "var(--navy)";
+  pill.textContent = `${events.length} event${events.length === 1 ? "" : "s"}`;
+
+  if (events.length === 0) {
+    container.innerHTML = `
+      <div class="events-empty">
+        <strong>No calendar events today.</strong>
+        Tip: create client meetings with <code>[LCRM:ClientName]</code> in the title.
+        For Helix work, use <code>[Helix:Topic]</code>. They'll appear here color-coded.
+      </div>`;
+    return;
+  }
+
+  const now = new Date();
+  const rows = events.map(ev => {
+    const { tag, project } = parseEventTag(ev);
+    const title = stripTag(ev.summary) || "(no title)";
+    const { start, end, allDay } = eventTime(ev);
+    let timeBlock;
+    if (allDay) {
+      timeBlock = `<div class="event-time">All day<span class="when-rel">today</span></div>`;
+    } else if (start) {
+      const rel = fmtRel(start, now);
+      const range = end ? `${fmtClock(start)}–${fmtClock(end)}` : fmtClock(start);
+      timeBlock = `<div class="event-time">${fmtClock(start)}<span class="when-rel">${rel}</span></div>`;
+    } else {
+      timeBlock = `<div class="event-time">—</div>`;
+    }
+    const isNow = !allDay && start && end && now >= start && now < end;
+    const chipText = tag ? (project ? `${tag.toUpperCase()} · ${project}` : tag.toUpperCase()) : "UNTAGGED";
+    const chipClass = tag || "untagged";
+    const meta = [];
+    if (ev.location) meta.push(`📍 ${ev.location}`);
+    if (Array.isArray(ev.attendees) && ev.attendees.length) meta.push(`👥 ${ev.attendees.length}`);
+    const metaLine = meta.length ? `<div class="event-meta">${meta.join(" · ")}</div>` : "";
+    return `
+      <div class="event-row tag-${chipClass}${isNow ? ' now' : ''}">
+        ${timeBlock}
+        <div>
+          <div class="event-title"><span class="event-chip ${chipClass}">${chipText}</span>${title}</div>
+          ${metaLine}
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  container.innerHTML = `<div class="events-list">${rows}</div>`;
+}
+
+async function refreshEvents() {
+  const result = await fetchTodayEvents();
+  renderEvents(result);
+}
+
+// ============================================================
+// RENDER — TIME BLOCKS
+// ============================================================
+function descForBlock(b, date, houseTask, workoutDesc) {
+  if (b.name === "House Reset" && houseTask) return houseTask;
+  if (b.name === "Workout" && workoutDesc) return workoutDesc;
+  return b.desc;
+}
+function renderBlocks() {
+  const now = new Date();
+  const cur = currentBlock(now);
+  const blocks = blocksForDate(now);
+  const houseTask = houseResetForDate(now);
+  const workoutDesc = workoutDescForDate(now);
+  const list = document.getElementById("blocksList");
+  list.innerHTML = blocks.map(b => {
+    const isCur = cur && b.start === cur.start;
+    const desc = descForBlock(b, now, houseTask, workoutDesc);
+    return `
+      <div class="block-row zone-${b.zone}${isCur ? ' current' : ''}">
+        <div class="block-time">${fmtTimeRange(b)}</div>
+        <div class="block-name">${b.name}</div>
+        <div class="block-desc">${desc}</div>
+      </div>
+    `;
+  }).join("");
+}
+
+// ============================================================
+// RENDER — NON-NEGOTIABLES
+// ============================================================
+function computeStreak(itemId) {
+  let streak = 0;
+  const today = new Date(); today.setHours(0,0,0,0);
+  // Count back day-by-day starting yesterday, until we hit a miss
+  for (let i = 1; i <= 60; i++) {
+    const d = addDays(today, -i);
+    const dow = (d.getDay() + 6) % 7;
+    // Skip Sunday for workout streak (rest day)
+    if (itemId === "workout" && dow === 6) continue;
+    const e = (state.days || {})[dateKey(d)] || {};
+    const nn = e.nn || {};
+    if (nn[itemId]) streak++;
+    else break;
+  }
+  // Add today if checked
+  const todayNN = (dayEntry(todayKey()).nn) || {};
+  if (todayNN[itemId]) streak++;
+  return streak;
+}
+
+function renderNN() {
+  const e = dayEntry(todayKey());
+  const nn = e.nn || {};
+  const grid = document.getElementById("nnGrid");
+  grid.innerHTML = NN_ITEMS.map(item => {
+    const done = !!nn[item.id];
+    const streak = computeStreak(item.id);
+    const streakText = streak > 0 ? `🔥 ${streak}` : "—";
+    return `
+      <label class="nn-item ${done ? 'done' : ''}" data-nn="${item.id}">
+        <input type="checkbox" ${done ? 'checked' : ''}>
+        <div class="nn-text">${item.label}<span class="sub">${item.sub}</span></div>
+        <div class="nn-streak">${streakText}</div>
+      </label>
+    `;
+  }).join("");
+  grid.querySelectorAll('[data-nn]').forEach(el => {
+    el.addEventListener('click', e => {
+      if (e.target.tagName === 'INPUT') return; // checkbox handles itself
+    });
+    el.querySelector('input').addEventListener('change', e => {
+      const id = el.dataset.nn;
+      const e2 = dayEntry(todayKey());
+      if (!e2.nn) e2.nn = {};
+      e2.nn[id] = e.target.checked;
+      saveState();
+      renderNN();
+      updateStats();
+    });
+  });
+}
+
+// ============================================================
+// RENDER — WEEK GRID
+// ============================================================
+function renderWeek() {
+  const today = new Date();
+  const monday = mondayOf(today);
+  const todayK = todayKey();
+  const grid = document.getElementById("weekGrid");
+  let html = "";
+  for (let i = 0; i < 7; i++) {
+    const d = addDays(monday, i);
+    const dk = dateKey(d);
+    const isToday = dk === todayK;
+    const dow = i;
+    const workout = WORKOUT_BY_DOW[dow];
+    const focus = WEEK_FOCUS[DOW[dow]];
+    html += `
+      <div class="week-day ${isToday ? 'today' : ''}" data-date="${dk}" style="cursor:pointer;">
+        <div class="dow">${DOW[dow]}</div>
+        <div class="dom">${d.getDate()}</div>
+        <div class="workout ${workout.toLowerCase()}">${workout}</div>
+        <div class="focus-tag">${focus}</div>
+      </div>
+    `;
+  }
+  grid.innerHTML = html;
+  grid.querySelectorAll('.week-day').forEach(el => {
+    el.addEventListener('click', () => {
+      const dk = el.dataset.date;
+      const [y, m, d] = dk.split('-').map(Number);
+      openDayModal(new Date(y, m - 1, d));
+    });
+  });
+  document.getElementById("weekPill").textContent = `Week of ${monday.toLocaleDateString("en-US", { month: "short", day: "numeric" })}`;
+}
+
+// ============================================================
+// FRIDAY WRAP
+// ============================================================
+const FRIDAY_QS = [
+  { id: "gym",       label: "Did I hit my gym goals this week?",      type: "yesno" },
+  { id: "outreach",  label: "Did I do enough outreach for LCRM?",     type: "yesno" },
+  { id: "helix",     label: "Did Helix Aminos move forward? Name the concrete step.", type: "text" },
+  { id: "pushed",    label: "What got pushed that shouldn't have?",   type: "text" },
+  { id: "bigRock",   label: "What is the Big Rock for next week?",    type: "text" },
+];
+function isFriday() { return new Date().getDay() === 5; }
+function isFridayAfternoon() {
+  const n = new Date(); return n.getDay() === 5 && n.getHours() >= 12;
+}
+function renderFriday() {
+  const panel = document.getElementById("fridayWrapPanel");
+  const now = new Date();
+  const friday = new Date(now); friday.setDate(now.getDate() + ((5 - now.getDay() + 7) % 7));
+  const fk = dateKey(friday);
+  const wk = weekEntry(weekKey(friday));
+  const data = wk.fridayWrap || {};
+  // Show always, but only auto-expand visual cue on Friday PM
+  const when = isFridayAfternoon()
+    ? "Now — it's Friday afternoon. Five minutes."
+    : `Next: Friday ${friday.toLocaleDateString("en-US", { month: "short", day: "numeric" })} afternoon`;
+  document.getElementById("fridayWhen").textContent = when;
+
+  const ritual = document.getElementById("fridayRitual");
+  ritual.innerHTML = FRIDAY_QS.map(q => {
+    if (q.type === "yesno") {
+      const v = data[q.id] || "";
+      return `
+        <div class="q">
+          <label>${q.label}</label>
+          <div class="yesno">
+            <label><input type="radio" name="fw-${q.id}" value="yes" ${v==='yes'?'checked':''}> ✓ Yes</label>
+            <label><input type="radio" name="fw-${q.id}" value="no"  ${v==='no'?'checked':''}> ✗ No</label>
+          </div>
+        </div>
+      `;
+    }
+    return `
+      <div class="q">
+        <label>${q.label}</label>
+        <textarea data-fw="${q.id}" placeholder="...">${(data[q.id]||"").replace(/</g,'&lt;')}</textarea>
+      </div>
+    `;
+  }).join("") + `
+    <div class="actions"><button class="primary" id="saveFridayBtn">Save Friday Wrap</button></div>
+  `;
+  document.getElementById("saveFridayBtn").addEventListener("click", () => {
+    const out = {};
+    FRIDAY_QS.forEach(q => {
+      if (q.type === "yesno") {
+        const sel = ritual.querySelector(`input[name="fw-${q.id}"]:checked`);
+        out[q.id] = sel ? sel.value : "";
+      } else {
+        out[q.id] = (ritual.querySelector(`[data-fw="${q.id}"]`) || {}).value || "";
+      }
+    });
+    wk.fridayWrap = out;
+    saveState();
+  });
+}
+
+// ============================================================
+// SUNDAY SETUP
+// ============================================================
+const SUNDAY_QS = [
+  { id: "rockLCRM",  label: "Next week's Big Rock — LCRM",  type: "text" },
+  { id: "rockHelix", label: "Next week's Big Rock — Helix Aminos", type: "text" },
+  { id: "pipeline",  label: "Pipeline status — who am I touching this week?", type: "textarea" },
+  { id: "family",    label: "Family logistics — baseball, school, anything to prep?", type: "textarea" },
+  { id: "blocker",   label: "What's the one blocker I need to clear this week?", type: "text" },
+];
+function isSunday() { return new Date().getDay() === 0; }
+function renderSunday() {
+  const panel = document.getElementById("sundaySetupPanel");
+  const now = new Date();
+  const sun = new Date(now); sun.setDate(now.getDate() + ((0 - now.getDay() + 7) % 7));
+  const nextMonday = addDays(sun, 1);
+  const wk = weekEntry(weekKey(nextMonday));
+  const data = wk.sundaySetup || {};
+  const when = isSunday()
+    ? "Now — it's Sunday. Ten minutes to set the week."
+    : `Next: Sunday ${sun.toLocaleDateString("en-US", { month: "short", day: "numeric" })} evening`;
+  document.getElementById("sundayWhen").textContent = when;
+
+  const ritual = document.getElementById("sundayRitual");
+  ritual.innerHTML = SUNDAY_QS.map(q => {
+    const v = data[q.id] || "";
+    if (q.type === "textarea") {
+      return `<div class="q"><label>${q.label}</label><textarea data-ss="${q.id}">${v.replace(/</g,'&lt;')}</textarea></div>`;
+    }
+    return `<div class="q"><label>${q.label}</label><input type="text" data-ss="${q.id}" value="${v.replace(/"/g,'&quot;')}"></div>`;
+  }).join("") + `
+    <div class="actions"><button class="primary" id="saveSundayBtn">Save Sunday Setup</button></div>
+  `;
+  document.getElementById("saveSundayBtn").addEventListener("click", () => {
+    const out = {};
+    SUNDAY_QS.forEach(q => {
+      out[q.id] = (ritual.querySelector(`[data-ss="${q.id}"]`) || {}).value || "";
+    });
+    wk.sundaySetup = out;
+    saveState();
+  });
+}
+
+// ============================================================
+// REFERENCE PANELS
+// ============================================================
+function renderReference() {
+  // Principles
+  document.getElementById("panel-principles").innerHTML = `
+    <table class="ref">
+      <tr><td><strong>Wake 5:00 AM</strong></td><td>Lights out 9:00 PM. Eight hours protected.</td></tr>
+      <tr><td><strong>LCRM pays the bills</strong></td><td>Helix builds the future. Neither starves the other.</td></tr>
+      <tr><td><strong>Deep Work before lunch</strong></td><td>Sales and admin after.</td></tr>
+      <tr><td><strong>Family Pivots are sacred</strong></td><td>AM + PM. Phone in another room.</td></tr>
+      <tr><td><strong>Outreach + gym daily</strong></td><td>Skip either 2 days running — flag it.</td></tr>
+      <tr><td><strong>Friday Wrap. Sunday Setup.</strong></td><td>Five minutes Friday PM. Ten minutes Sunday evening.</td></tr>
+      <tr><td><strong>Rule of thumb</strong></td><td>This is the rhythm, not the prison. Miss a day, rejoin the next.</td></tr>
+    </table>
+  `;
+
+  // Daily template — single shape, workouts unified at 11:30–1:00 PM.
+  const tmplTable = (label, blocks) => `
+    <h3 style="margin: 14px 0 6px; color: var(--navy); font-size: 14px;">${label}</h3>
+    <table class="ref">
+      <tr><th style="width: 150px">Time</th><th style="width: 150px">Block</th><th>Detail</th></tr>
+      ${blocks.map(b => `
+        <tr>
+          <td><strong>${fmtTimeRange(b)}</strong></td>
+          <td>${b.name}</td>
+          <td>${b.desc}</td>
+        </tr>
+      `).join("")}
+    </table>
+  `;
+  const workoutRotation = `
+    <h3 style="margin: 22px 0 6px; color: var(--navy); font-size: 14px;">Workout rotation — 11:30 AM–1:00 PM daily</h3>
+    <table class="ref">
+      <tr><th style="width: 80px">Day</th><th>Today's workout</th></tr>
+      ${["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map(d => `
+        <tr><td><strong>${d}</strong></td><td>${WORKOUT_DESCS[d]}</td></tr>
+      `).join("")}
+    </table>
+  `;
+  const houseRotation = `
+    <h3 style="margin: 22px 0 6px; color: var(--navy); font-size: 14px;">House Reset rotation — M-F (30 min block)</h3>
+    <table class="ref">
+      <tr><th style="width: 80px">Day</th><th>Today's cleaning task</th></tr>
+      <tr><td><strong>Mon</strong></td><td>${HOUSE_RESET_TASKS.Mon}</td></tr>
+      <tr><td><strong>Tue</strong></td><td>${HOUSE_RESET_TASKS.Tue}</td></tr>
+      <tr><td><strong>Wed</strong></td><td>${HOUSE_RESET_TASKS.Wed}</td></tr>
+      <tr><td><strong>Thu</strong></td><td>${HOUSE_RESET_TASKS.Thu}</td></tr>
+      <tr><td><strong>Fri</strong></td><td>${HOUSE_RESET_TASKS.Fri}</td></tr>
+    </table>
+  `;
+  document.getElementById("panel-template").innerHTML =
+    tmplTable("Daily template — same shape every weekday", TIME_BLOCKS_WEEKDAY) +
+    workoutRotation +
+    houseRotation;
+
+  // Weekly
+  const weeklyRows = [
+    ["Mon", "Bike", "LCRM week kickoff + Helix supplier/ops check", "Write the week's LinkedIn post. Confirm baseball logistics."],
+    ["Tue", "Lift", "LCRM deep delivery + Helix brand/content sprint", "Try for one coffee meeting — Allentown / Bethlehem / Easton."],
+    ["Wed", "Bike", "LCRM delivery + Helix legal/launch milestone push", "Midweek pipeline check: 50%+ to weekly outreach goal?"],
+    ["Thu", "Lift", "LCRM delivery + Helix audience/copy work", "\"One Step Forward\" on LCRM — case study, offer, package."],
+    ["Fri", "Bike", "LCRM AM only • PM = Errands + Friday Wrap", "Friday Wrap: Gym? Outreach? Helix? Pick next Big Rock."],
+    ["Sat", "Lift", "Flex — DIY, shop, Helix creative, family", "Light work day. Protect from heavy client commitments."],
+    ["Sun", "Rest", "Family + Sunday Setup", "Plan the week. Review pipeline. Set the two Big Rocks."],
+  ];
+  document.getElementById("panel-weekly").innerHTML = `
+    <table class="ref">
+      <tr><th>Day</th><th>Workout</th><th>Business Focus</th><th>Notable</th></tr>
+      ${weeklyRows.map(r => `<tr><td><strong>${r[0]}</strong></td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join("")}
+    </table>
+  `;
+
+  // Zones
+  document.getElementById("panel-zones").innerHTML = `
+    <div class="zone-key">
+      <div class="zk deep"><h4>Deep Work Spike</h4><p>Uninterrupted client delivery. Apex, LWC, Flow architecture, complex troubleshooting. Protect from interruption.</p></div>
+      <div class="zk pipe"><h4>Pipeline Protector</h4><p>Outreach, networking, brand building. Non-negotiable weekly minimum.</p></div>
+      <div class="zk fam"><h4>Family Pivot</h4><p>High-presence time with the kids — morning prep, drop-off, baseball, gear logistics.</p></div>
+      <div class="zk rec"><h4>Active Recovery</h4><p>Gym, woodworking, DIY/home improvement, cleaning rotations, 3D printing. Palate cleansers, not afterthoughts.</p></div>
+    </div>
+  `;
+
+  // Non-negotiables
+  document.getElementById("panel-nonneg").innerHTML = `
+    <table class="ref">
+      <tr><th>Pillar</th><th>Daily / Weekly minimum</th></tr>
+      <tr><td><strong>Outreach (LCRM)</strong></td><td>1 cold DM + 3 thoughtful comments + 1 warm lead touch. Daily.</td></tr>
+      <tr><td><strong>Gym</strong></td><td>Bike M/W/F · Lift T/Th/Sa · Sun rest. Rain swaps to next lift day.</td></tr>
+      <tr><td><strong>Helix forward motion</strong></td><td>One concrete step every week: supplier, brand, legal, audience, compliance, copy.</td></tr>
+      <tr><td><strong>Family Pivots</strong></td><td>AM + PM. Phone in another room. School drop-off + pickup + dinner are sacred.</td></tr>
+      <tr><td><strong>Sleep window</strong></td><td>Lights out 9:00 PM. Wake 5:00 AM. No alarm-skipping.</td></tr>
+    </table>
+  `;
+}
+
+// ============================================================
+// JOURNAL
+// ============================================================
+const journalModal = document.getElementById("journalModal");
+const journalText = document.getElementById("journalText");
+const journalMeta = document.getElementById("journalMeta");
+const journalBtn = document.getElementById("journalBtn");
+const journalDateSub = document.getElementById("journalDateSub");
+
+function getJournal(key) {
+  return (dayEntry(key).journal) || "";
+}
+
+// Find the most recent journal entry strictly before today.
+// Looks back up to 30 days. Returns { date, text, daysAgo } or null.
+function findPriorJournal() {
+  if (!state.days) return null;
+  const today = new Date(); today.setHours(0,0,0,0);
+  for (let i = 1; i <= 30; i++) {
+    const d = addDays(today, -i);
+    const key = dateKey(d);
+    const e = state.days[key];
+    if (e && e.journal && e.journal.trim()) {
+      return { date: d, text: e.journal, daysAgo: i };
+    }
+  }
+  return null;
+}
+
+function renderPriorEntry() {
+  const prior = findPriorJournal();
+  const box = document.getElementById("priorEntry");
+  if (!prior) {
+    box.style.display = "none";
+    return;
+  }
+  const label = prior.daysAgo === 1
+    ? "Yesterday"
+    : `${prior.daysAgo} days ago`;
+  document.getElementById("priorLabel").textContent = label;
+  document.getElementById("priorWhen").textContent =
+    prior.date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+  document.getElementById("priorText").textContent = prior.text;
+  box.style.display = "";
+  box.scrollTop = 0;
+}
+function saveJournalText(key, text) {
+  const e = dayEntry(key);
+  if (text && text.trim()) {
+    e.journal = text;
+    e.journalUpdated = new Date().toISOString();
+  } else {
+    delete e.journal;
+    delete e.journalUpdated;
+  }
+  // Clean up empty day records
+  if (Object.keys(e).length === 0 && state.days) delete state.days[key];
+  saveState();
+}
+function openJournal() {
+  const key = todayKey();
+  const e = dayEntry(key);
+  journalText.value = getJournal(key);
+  const now = new Date();
+  journalDateSub.textContent = now.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+  if (e.journalUpdated) {
+    journalMeta.textContent = "Last saved: " + new Date(e.journalUpdated).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+  } else {
+    journalMeta.textContent = "No entry yet today";
+  }
+  renderPriorEntry();
+  journalModal.classList.add("open");
+  setTimeout(() => journalText.focus(), 60);
+}
+function closeJournal() {
+  journalModal.classList.remove("open");
+  renderJournalBtn();
+}
+function commitJournal() {
+  saveJournalText(todayKey(), journalText.value);
+  closeJournal();
+}
+function renderJournalBtn() {
+  const has = !!getJournal(todayKey());
+  journalBtn.classList.toggle("has-entry", has);
+  journalBtn.innerHTML = has ? "📝 Journal" : "📝 Journal";
+}
+
+journalBtn.addEventListener("click", openJournal);
+document.getElementById("journalClose").addEventListener("click", closeJournal);
+document.getElementById("journalCancel").addEventListener("click", closeJournal);
+document.getElementById("journalSave").addEventListener("click", commitJournal);
+journalModal.addEventListener("click", e => { if (e.target === journalModal) closeJournal(); });
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && journalModal.classList.contains("open")) closeJournal();
+  if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && journalModal.classList.contains("open")) commitJournal();
+});
+
+// ============================================================
+// EVENTS
+// ============================================================
+document.querySelector('[data-rock="lcrm"]').addEventListener('input', saveRocks);
+document.querySelector('[data-rock="helix"]').addEventListener('input', saveRocks);
+document.querySelector('[data-rock-done="lcrm"]').addEventListener('change', saveRocks);
+document.querySelector('[data-rock-done="helix"]').addEventListener('change', saveRocks);
+
+document.querySelector('[data-tomorrow-rock="lcrm"]').addEventListener('input', saveTomorrow);
+document.querySelector('[data-tomorrow-rock="helix"]').addEventListener('input', saveTomorrow);
+
+document.getElementById("resetBtn").addEventListener("click", () => {
+  if (!confirm("Clear today's entries (rocks + non-negotiables)? Streaks and other days are preserved.")) return;
+  if (state.days && state.days[todayKey()]) delete state.days[todayKey()];
+  saveState();
+  renderAll();
+});
+
+document.querySelectorAll(".tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+    tab.classList.add("active");
+    document.querySelector(`[data-panel="${tab.dataset.tab}"]`).classList.add("active");
+  });
+});
+
+// ============================================================
+// FLASH
+// ============================================================
+let flashTimer = null;
+function flashSaved() {
+  const el = document.getElementById("saveFlash");
+  el.classList.add("show");
+  if (flashTimer) clearTimeout(flashTimer);
+  flashTimer = setTimeout(() => el.classList.remove("show"), 900);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+// ============================================================
+// ACCORDION (Friday Wrap, Sunday Setup)
+// ============================================================
+function setAccordionState(panelId, expanded, due) {
+  const panel = document.getElementById(panelId);
+  panel.classList.toggle('collapsed', !expanded);
+  panel.classList.toggle('due', !!due);
+}
+
+function initAccordions() {
+  // Initial expand/collapse based on day-of-week
+  const dow = new Date().getDay();  // 0 = Sun, 5 = Fri
+  const isFri = dow === 5;
+  const isSatOrSun = dow === 6 || dow === 0;
+  setAccordionState("fridayWrapPanel", isFri, isFri);
+  setAccordionState("sundaySetupPanel", isSatOrSun, isSatOrSun);
+
+  // Click handlers — only on the panel-head
+  ["fridayWrapPanel", "sundaySetupPanel"].forEach(id => {
+    const panel = document.getElementById(id);
+    const head = panel.querySelector('.panel-head');
+    head.addEventListener('click', e => {
+      // Ignore clicks that originated inside form controls (defensive)
+      if (e.target.closest('input, textarea, button, label')) return;
+      panel.classList.toggle('collapsed');
+    });
+  });
+}
+
+function renderAll() {
+  renderHeader();
+  renderRocks();
+  renderTomorrow();
+  renderBlocks();
+  renderNN();
+  renderWeek();
+  renderMonth();
+  renderFriday();
+  renderSunday();
+  renderReference();
+  renderJournalBtn();
+}
+renderAll();
+initAccordions();
+refreshEvents();
+// Refresh clock + current block once a minute, refresh calendar every 5 min
+setInterval(() => { updateClock(); renderBlocks(); }, 60 * 1000);
+setInterval(refreshEvents, 5 * 60 * 1000);
+</script>
+</body>
+</html>
