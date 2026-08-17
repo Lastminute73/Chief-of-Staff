@@ -665,9 +665,16 @@ const EX = {
   front_sq:   { name: "Front Squat",             sets: 3, reps: "8–10",  rest: 150, vid: "front squat form" },
   bss:        { name: "Bulgarian Split Squat",   sets: 3, reps: "8–10/leg", rest: 120, vid: "bulgarian split squat form" },
   hip_thrust: { name: "Hip Thrust",              sets: 3, reps: "8–12",  rest: 120, vid: "barbell hip thrust form" },
-  leg_ext:    { name: "Leg Extension",           sets: 3, reps: "12–15", rest: 90,  vid: "leg extension machine form" },
+  leg_ext:    { name: "Leg Extension",           sets: 3, reps: "10–12", rest: 90,  vid: "leg extension machine form" },
   calf_seat:  { name: "Seated Calf Raise",       sets: 4, reps: "12–15", rest: 60,  vid: "seated calf raise form" },
   ab_wheel:   { name: "Ab Wheel / Crunch",       sets: 3, reps: "10–15", rest: 60,  vid: "ab wheel rollout form" },
+
+  skullcrusher: { name: "Skullcrusher (EZ-Bar)", sets: 3, reps: "8–10",  rest: 90,  vid: "ez bar skullcrusher lying tricep extension form" },
+  pulldown:     { name: "Lat Pulldown",          sets: 4, reps: "10–12", rest: 120, vid: "lat pulldown proper form" },
+  oh_tri:       { name: "Overhead Cable Extension", sets: 3, reps: "10–15", rest: 90, vid: "overhead cable tricep extension form" },
+  incline_curl: { name: "Incline DB Curl",       sets: 3, reps: "10–15", rest: 90,  vid: "incline dumbbell curl form" },
+  ghr:          { name: "Back Extension / GHR",  sets: 3, reps: "8–12",  rest: 90,  vid: "45 degree back extension glute ham raise form" },
+  cable_curl:   { name: "Cable Curl",            sets: 3, reps: "12–15", rest: 60,  vid: "cable bicep curl form" },
 };
 
 function videoUrl(exId) {
@@ -681,39 +688,44 @@ function videoUrl(exId) {
 // Volume lands ~12–16 hard sets per muscle per week (evidence sweet spot).
 // Every slot: {id, sets, reps, repHigh (top of range → add weight), rir, rest}.
 // ============================================================
+// A days and B days share (almost) no exercises:
+// Upper A = barbell strength · Upper B = DB/cable/machine from different angles
+// Lower A = squat pattern + quads · Lower B = hinge pattern + posterior chain
 const ROUTINES = {
-  upperA: { name: "Upper A — Heavy", short: "Upper A", exs: [
-    { id: "bench",      sets: 4, reps: "4–6",    repHigh: 6,  rir: "2–3", rest: 180 },
-    { id: "bb_row",     sets: 4, reps: "5–7",    repHigh: 7,  rir: "2–3", rest: 180 },
-    { id: "ohp",        sets: 3, reps: "6–8",    repHigh: 8,  rir: "2",   rest: 150 },
-    { id: "pullup",     sets: 3, reps: "6–8",    repHigh: 8,  rir: "2",   rest: 150 },
-    { id: "incline_db", sets: 3, reps: "8–10",   repHigh: 10, rir: "1–2", rest: 120 },
-    { id: "face_pull",  sets: 3, reps: "12–15",  repHigh: 15, rir: "1",   rest: 90 },
-    { id: "bb_curl",    sets: 3, reps: "8–12",   repHigh: 12, rir: "1",   rest: 90 },
+  upperA: { name: "Upper A — Barbell Heavy", short: "Upper A", exs: [
+    { id: "bench",        sets: 4, reps: "4–6",    repHigh: 6,  rir: "2–3", rest: 180 },
+    { id: "bb_row",       sets: 4, reps: "5–7",    repHigh: 7,  rir: "2–3", rest: 180 },
+    { id: "ohp",          sets: 3, reps: "6–8",    repHigh: 8,  rir: "2",   rest: 150 },
+    { id: "pullup",       sets: 3, reps: "6–8",    repHigh: 8,  rir: "2",   rest: 150 },
+    { id: "skullcrusher", sets: 3, reps: "8–10",   repHigh: 10, rir: "1–2", rest: 90 },
+    { id: "bb_curl",      sets: 3, reps: "8–10",   repHigh: 10, rir: "1–2", rest: 90 },
+    { id: "ham_curl",     sets: 3, reps: "10–12",  repHigh: 12, rir: "1",   rest: 60 },
+    { id: "face_pull",    sets: 3, reps: "12–15",  repHigh: 15, rir: "1",   rest: 90 },
   ]},
-  lowerA: { name: "Lower A — Heavy Squat", short: "Lower A", exs: [
+  lowerA: { name: "Lower A — Squat & Quads", short: "Lower A", exs: [
     { id: "squat",      sets: 4, reps: "4–6",    repHigh: 6,  rir: "2–3", rest: 180 },
-    { id: "rdl",        sets: 3, reps: "6–8",    repHigh: 8,  rir: "2",   rest: 150 },
     { id: "leg_press",  sets: 3, reps: "8–10",   repHigh: 10, rir: "1–2", rest: 120 },
+    { id: "leg_ext",    sets: 3, reps: "10–12",  repHigh: 12, rir: "1",   rest: 90 },
     { id: "leg_curl",   sets: 3, reps: "8–12",   repHigh: 12, rir: "1–2", rest: 90 },
     { id: "calf_stand", sets: 4, reps: "8–12",   repHigh: 12, rir: "1",   rest: 90 },
     { id: "hlr",        sets: 3, reps: "10–15",  repHigh: 15, rir: "1",   rest: 60 },
   ]},
-  upperB: { name: "Upper B — Volume", short: "Upper B", exs: [
-    { id: "db_bench",   sets: 4, reps: "8–12",   repHigh: 12, rir: "1–2", rest: 120 },
-    { id: "cable_row",  sets: 4, reps: "10–12",  repHigh: 12, rir: "1–2", rest: 120 },
-    { id: "db_press",   sets: 3, reps: "10–12",  repHigh: 12, rir: "1–2", rest: 120 },
-    { id: "cable_fly",  sets: 3, reps: "12–15",  repHigh: 15, rir: "0–1", rest: 90 },
-    { id: "lat_raise",  sets: 3, reps: "15–20",  repHigh: 20, rir: "0–1", rest: 60 },
-    { id: "rear_delt",  sets: 3, reps: "15–20",  repHigh: 20, rir: "0–1", rest: 60 },
-    { id: "tri_push",   sets: 3, reps: "10–15",  repHigh: 15, rir: "0–1", rest: 90 },
-    { id: "ham_curl",   sets: 3, reps: "10–15",  repHigh: 15, rir: "0–1", rest: 90 },
+  upperB: { name: "Upper B — Angles & Volume", short: "Upper B", exs: [
+    { id: "incline_db",   sets: 4, reps: "8–12",   repHigh: 12, rir: "1–2", rest: 120 },
+    { id: "pulldown",     sets: 4, reps: "10–12",  repHigh: 12, rir: "1–2", rest: 120 },
+    { id: "cable_row",    sets: 3, reps: "10–12",  repHigh: 12, rir: "1–2", rest: 120 },
+    { id: "cable_fly",    sets: 3, reps: "12–15",  repHigh: 15, rir: "0–1", rest: 90 },
+    { id: "lat_raise",    sets: 3, reps: "15–20",  repHigh: 20, rir: "0–1", rest: 60 },
+    { id: "rear_delt",    sets: 3, reps: "15–20",  repHigh: 20, rir: "0–1", rest: 60 },
+    { id: "oh_tri",       sets: 3, reps: "10–15",  repHigh: 15, rir: "0–1", rest: 90 },
+    { id: "incline_curl", sets: 3, reps: "10–15",  repHigh: 15, rir: "0–1", rest: 90 },
+    { id: "cable_curl",   sets: 3, reps: "12–15",  repHigh: 15, rir: "0–1", rest: 60 },
   ]},
-  lowerB: { name: "Lower B — Hinge & Volume", short: "Lower B", exs: [
+  lowerB: { name: "Lower B — Hinge & Glutes", short: "Lower B", exs: [
     { id: "deadlift",   sets: 3, reps: "4–6",    repHigh: 6,  rir: "2–3", rest: 210 },
-    { id: "front_sq",   sets: 3, reps: "8–10",   repHigh: 10, rir: "1–2", rest: 150 },
-    { id: "bss",        sets: 3, reps: "8–10/leg", repHigh: 10, rir: "1–2", rest: 120 },
     { id: "hip_thrust", sets: 3, reps: "8–12",   repHigh: 12, rir: "1–2", rest: 120 },
+    { id: "bss",        sets: 3, reps: "8–10/leg", repHigh: 10, rir: "1–2", rest: 120 },
+    { id: "ghr",        sets: 3, reps: "8–12",   repHigh: 12, rir: "1–2", rest: 90 },
     { id: "calf_seat",  sets: 4, reps: "12–15",  repHigh: 15, rir: "0–1", rest: 60 },
     { id: "ab_wheel",   sets: 3, reps: "10–15",  repHigh: 15, rir: "1",   rest: 60 },
   ]},
