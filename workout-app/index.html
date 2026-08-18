@@ -502,7 +502,7 @@
       <a href="../" class="back-btn" title="Back to Chief of Staff">‹</a>
       <div class="title-text">
         <h1>Workout Schedule</h1>
-        <div class="subtitle">4× Lift / 2× Bike — Heavy Mon/Tue · Volume Thu/Fri · Rest Sun</div>
+        <div class="subtitle">Chest+Tris · Back+Bis · Legs — emphasis alternates weekly · Bike Wed/Sat</div>
       </div>
     </div>
   </header>
@@ -675,6 +675,7 @@ const EX = {
   incline_curl: { name: "Incline DB Curl",       sets: 3, reps: "10–15", rest: 90,  vid: "incline dumbbell curl form" },
   ghr:          { name: "Back Extension / GHR",  sets: 3, reps: "8–12",  rest: 90,  vid: "45 degree back extension glute ham raise form" },
   cable_curl:   { name: "Cable Curl",            sets: 3, reps: "12–15", rest: 60,  vid: "cable bicep curl form" },
+  sa_pulldown:  { name: "Straight-Arm Pulldown", sets: 3, reps: "12–15", rest: 90,  vid: "straight arm cable pulldown form" },
 };
 
 function videoUrl(exId) {
@@ -688,51 +689,71 @@ function videoUrl(exId) {
 // Volume lands ~12–16 hard sets per muscle per week (evidence sweet spot).
 // Every slot: {id, sets, reps, repHigh (top of range → add weight), rir, rest}.
 // ============================================================
-// A days and B days share (almost) no exercises:
-// Upper A = barbell strength · Upper B = DB/cable/machine from different angles
-// Lower A = squat pattern + quads · Lower B = hinge pattern + posterior chain
+// Complementary pairings: Chest+Triceps · Back+Biceps · Legs.
+// Weeks alternate emphasis — Chest week runs Chest A (heavy) + Chest B (volume),
+// Back week runs Back A + Back B. The non-emphasized pair keeps its heavy day.
+// Legs every Friday. A/B variants of a pair share no exercises.
 const ROUTINES = {
-  upperA: { name: "Upper A — Barbell Heavy", short: "Upper A", exs: [
+  chestA: { name: "Chest & Tris A — Heavy", short: "Chest A", exs: [
     { id: "bench",        sets: 4, reps: "4–6",    repHigh: 6,  rir: "2–3", rest: 180 },
-    { id: "bb_row",       sets: 4, reps: "5–7",    repHigh: 7,  rir: "2–3", rest: 180 },
     { id: "ohp",          sets: 3, reps: "6–8",    repHigh: 8,  rir: "2",   rest: 150 },
-    { id: "pullup",       sets: 3, reps: "6–8",    repHigh: 8,  rir: "2",   rest: 150 },
+    { id: "incline_db",   sets: 3, reps: "8–10",   repHigh: 10, rir: "1–2", rest: 120 },
+    { id: "dips",         sets: 3, reps: "6–10",   repHigh: 10, rir: "1–2", rest: 120 },
     { id: "skullcrusher", sets: 3, reps: "8–10",   repHigh: 10, rir: "1–2", rest: 90 },
+    { id: "lat_raise",    sets: 3, reps: "12–15",  repHigh: 15, rir: "1",   rest: 60 },
+  ]},
+  chestB: { name: "Chest & Tris B — Volume", short: "Chest B", exs: [
+    { id: "db_bench",     sets: 4, reps: "8–12",   repHigh: 12, rir: "1–2", rest: 120 },
+    { id: "cable_fly",    sets: 3, reps: "12–15",  repHigh: 15, rir: "0–1", rest: 90 },
+    { id: "db_press",     sets: 3, reps: "10–12",  repHigh: 12, rir: "1–2", rest: 120 },
+    { id: "oh_tri",       sets: 3, reps: "10–15",  repHigh: 15, rir: "0–1", rest: 90 },
+    { id: "tri_push",     sets: 3, reps: "12–15",  repHigh: 15, rir: "0–1", rest: 90 },
+  ]},
+  backA: { name: "Back & Bis A — Heavy", short: "Back A", exs: [
+    { id: "deadlift",     sets: 3, reps: "4–6",    repHigh: 6,  rir: "2–3", rest: 210 },
+    { id: "bb_row",       sets: 4, reps: "5–7",    repHigh: 7,  rir: "2–3", rest: 180 },
+    { id: "pullup",       sets: 3, reps: "6–8",    repHigh: 8,  rir: "2",   rest: 150 },
+    { id: "face_pull",    sets: 3, reps: "12–15",  repHigh: 15, rir: "1",   rest: 90 },
     { id: "bb_curl",      sets: 3, reps: "8–10",   repHigh: 10, rir: "1–2", rest: 90 },
     { id: "ham_curl",     sets: 3, reps: "10–12",  repHigh: 12, rir: "1",   rest: 60 },
-    { id: "face_pull",    sets: 3, reps: "12–15",  repHigh: 15, rir: "1",   rest: 90 },
   ]},
-  lowerA: { name: "Lower A — Squat & Quads", short: "Lower A", exs: [
-    { id: "squat",      sets: 4, reps: "4–6",    repHigh: 6,  rir: "2–3", rest: 180 },
-    { id: "leg_press",  sets: 3, reps: "8–10",   repHigh: 10, rir: "1–2", rest: 120 },
-    { id: "leg_ext",    sets: 3, reps: "10–12",  repHigh: 12, rir: "1",   rest: 90 },
-    { id: "leg_curl",   sets: 3, reps: "8–12",   repHigh: 12, rir: "1–2", rest: 90 },
-    { id: "calf_stand", sets: 4, reps: "8–12",   repHigh: 12, rir: "1",   rest: 90 },
-    { id: "hlr",        sets: 3, reps: "10–15",  repHigh: 15, rir: "1",   rest: 60 },
-  ]},
-  upperB: { name: "Upper B — Angles & Volume", short: "Upper B", exs: [
-    { id: "incline_db",   sets: 4, reps: "8–12",   repHigh: 12, rir: "1–2", rest: 120 },
+  backB: { name: "Back & Bis B — Volume", short: "Back B", exs: [
     { id: "pulldown",     sets: 4, reps: "10–12",  repHigh: 12, rir: "1–2", rest: 120 },
     { id: "cable_row",    sets: 3, reps: "10–12",  repHigh: 12, rir: "1–2", rest: 120 },
-    { id: "cable_fly",    sets: 3, reps: "12–15",  repHigh: 15, rir: "0–1", rest: 90 },
-    { id: "lat_raise",    sets: 3, reps: "15–20",  repHigh: 20, rir: "0–1", rest: 60 },
+    { id: "sa_pulldown",  sets: 3, reps: "12–15",  repHigh: 15, rir: "0–1", rest: 90 },
     { id: "rear_delt",    sets: 3, reps: "15–20",  repHigh: 20, rir: "0–1", rest: 60 },
-    { id: "oh_tri",       sets: 3, reps: "10–15",  repHigh: 15, rir: "0–1", rest: 90 },
     { id: "incline_curl", sets: 3, reps: "10–15",  repHigh: 15, rir: "0–1", rest: 90 },
     { id: "cable_curl",   sets: 3, reps: "12–15",  repHigh: 15, rir: "0–1", rest: 60 },
   ]},
-  lowerB: { name: "Lower B — Hinge & Glutes", short: "Lower B", exs: [
-    { id: "deadlift",   sets: 3, reps: "4–6",    repHigh: 6,  rir: "2–3", rest: 210 },
-    { id: "hip_thrust", sets: 3, reps: "8–12",   repHigh: 12, rir: "1–2", rest: 120 },
-    { id: "bss",        sets: 3, reps: "8–10/leg", repHigh: 10, rir: "1–2", rest: 120 },
-    { id: "ghr",        sets: 3, reps: "8–12",   repHigh: 12, rir: "1–2", rest: 90 },
-    { id: "calf_seat",  sets: 4, reps: "12–15",  repHigh: 15, rir: "0–1", rest: 60 },
+  legs: { name: "Legs — Squat & Hinge", short: "Legs", exs: [
+    { id: "squat",      sets: 4, reps: "4–6",    repHigh: 6,  rir: "2–3", rest: 180 },
+    { id: "rdl",        sets: 3, reps: "6–8",    repHigh: 8,  rir: "2",   rest: 150 },
+    { id: "leg_press",  sets: 3, reps: "8–10",   repHigh: 10, rir: "1–2", rest: 120 },
+    { id: "leg_curl",   sets: 3, reps: "8–12",   repHigh: 12, rir: "1–2", rest: 90 },
+    { id: "leg_ext",    sets: 3, reps: "10–12",  repHigh: 12, rir: "1",   rest: 90 },
+    { id: "calf_stand", sets: 4, reps: "8–12",   repHigh: 12, rir: "1",   rest: 90 },
     { id: "ab_wheel",   sets: 3, reps: "10–15",  repHigh: 15, rir: "1",   rest: 60 },
   ]},
 };
-const ROUTINE_ORDER = ["upperA", "lowerA", "upperB", "lowerB"];
-// Default routine by day of week (Mon=0): heavy days early week, volume days late
-const ROUTINE_BY_DOW = { 0: "upperA", 1: "lowerA", 3: "upperB", 4: "lowerB" };
+const ROUTINE_ORDER = ["chestA", "chestB", "backA", "backB", "legs"];
+
+// Week-parity scheduling: even program weeks = Chest emphasis, odd = Back emphasis.
+const WEEK_MAPS = [
+  { 0: "chestA", 1: "backA", 3: "chestB", 4: "legs" },  // Chest week
+  { 0: "backA", 1: "chestA", 3: "backB", 4: "legs" },   // Back week
+];
+function weekMapFor(date) {
+  const idx = weekIndexOf(date);
+  return WEEK_MAPS[((idx % 2) + 2) % 2];
+}
+function isChestWeek(date) { return weekMapFor(date) === WEEK_MAPS[0]; }
+// Default routine for any date (swapped-in lift days get the emphasized pair's volume day)
+function routineDefaultFor(date) {
+  const dow = (date.getDay() + 6) % 7;
+  const map = weekMapFor(date);
+  if (map[dow]) return map[dow];
+  return isChestWeek(date) ? "chestB" : "backB";
+}
 
 // Resolve the programming for an exercise on a given date: the slot in that
 // day's routine, or EX fallback targets for off-program exercises.
@@ -849,41 +870,17 @@ function routineIdFor(date) {
   const k = dateKey(date);
   const e = state[k];
   if (e && e.routine && ROUTINES[e.routine]) return e.routine;
-  const dow = (date.getDay() + 6) % 7;
-  if (ROUTINE_BY_DOW[dow] !== undefined) return ROUTINE_BY_DOW[dow];
-  // Swapped-in lift day: continue the cycle from the most recent lift session
-  const prev = lastLiftRoutineBefore(date);
-  if (prev) {
-    const idx = ROUTINE_ORDER.indexOf(prev);
-    return ROUTINE_ORDER[(idx + 1) % ROUTINE_ORDER.length];
-  }
-  return "upperA";
+  return routineDefaultFor(date);
 }
 
 function setRoutine(date, rid) {
   const k = dateKey(date);
   const e = state[k] || {};
-  const dow = (date.getDay() + 6) % 7;
-  if (ROUTINE_BY_DOW[dow] === rid) delete e.routine;
+  if (routineDefaultFor(date) === rid) delete e.routine;
   else e.routine = rid;
   if (Object.keys(e).length === 0) delete state[k];
   else state[k] = e;
   saveState();
-}
-
-function lastLiftRoutineBefore(date) {
-  const target = dateKey(date);
-  let best = null, bestKey = "";
-  for (const [k, e] of Object.entries(state)) {
-    if (k.startsWith("_") || k >= target) continue;
-    const isLift = (e.workout === "Lift") ||
-      (!e.workout && DEFAULT_WEEK[(parseKey(k).getDay() + 6) % 7] === "Lift");
-    if (!isLift) continue;
-    if ((e.sets && Object.keys(e.sets).length) || e.completed) {
-      if (k > bestKey) { bestKey = k; best = e.routine || ROUTINE_BY_DOW[(parseKey(k).getDay() + 6) % 7] || null; }
-    }
-  }
-  return best;
 }
 
 function setCompleted(date, val) {
@@ -1091,11 +1088,14 @@ function renderTracker() {
     const liftPill = `<span class="count-pill ${liftCount === LIFT_TARGET ? "" : "off"}">${liftCount}/${LIFT_TARGET} 🏋️</span>`;
     const deloadPill = isDeloadWeek(ws)
       ? `<span class="count-pill" style="background:#FFF7ED;color:var(--warn-dark);">🔋 deload</span>` : "";
+    const emphPill = isChestWeek(ws)
+      ? `<span class="count-pill" style="background:var(--lift);color:var(--lift-dark);">🎯 chest wk</span>`
+      : `<span class="count-pill" style="background:var(--bike);color:var(--bike-dark);">🎯 back wk</span>`;
 
     weekDiv.innerHTML = `
       <div class="week-header">
         <div class="week-label">Week ${w + 1} · ${fmtDate(ws)}</div>
-        <div class="week-counts">${deloadPill}${liftPill}${bikePill}</div>
+        <div class="week-counts">${emphPill}${deloadPill}${liftPill}${bikePill}</div>
       </div>
       <div class="day-grid">
         ${days.map(({ date, workout, completed }, idx) => {
@@ -1148,8 +1148,8 @@ function renderReference() {
     <div class="group">
       <h4>Programming Rules (evidence-based)</h4>
       <table class="detail-table">
-        <tr><td>Weekly volume</td><td>~12–16 hard sets per muscle — research sweet spot is 10–20</td></tr>
-        <tr><td>Frequency</td><td>Every muscle 2× per week (upper/lower split does this)</td></tr>
+        <tr><td>Weekly volume</td><td>~10–17 hard sets per muscle averaged over the 2-week cycle (research band: 10–20)</td></tr>
+        <tr><td>Frequency</td><td>Emphasized pair 2× (heavy + volume), other pair 1× heavy — emphasis alternates weekly. Legs every Friday</td></tr>
         <tr><td>Effort — heavy days</td><td>Stop 2–3 reps shy of failure (RIR). Grinding to failure adds nothing for strength</td></tr>
         <tr><td>Effort — volume days</td><td>Push closer: 0–2 RIR, especially isolation work</td></tr>
         <tr><td>Progression</td><td>Double progression: hit the TOP of the rep range on ALL sets → add weight (+5 lb upper / +10 lb lower). The app flags this automatically</td></tr>
@@ -1627,7 +1627,7 @@ function sessionSummary(s) {
         if (set && set.r) { setCount++; if (set.w) volume += set.w * set.r; }
       }
     }
-    const rid = s.entry.routine || ROUTINE_BY_DOW[(s.date.getDay() + 6) % 7];
+    const rid = s.entry.routine || routineDefaultFor(s.date);
     const rname = rid && ROUTINES[rid] ? ROUTINES[rid].short : "Lift";
     const biked = s.entry.log && s.entry.log.bikedToGym ? " · 🚴 biked in" : "";
     return `${rname} · ${setCount} sets${volume ? ` · ${Math.round(volume).toLocaleString()} lbs total` : ""}${biked}`;
@@ -1651,7 +1651,7 @@ function sessionDetailHtml(s) {
   if (s.workout === "Lift" && e.sets && Object.keys(e.sets).length) {
     html += `<table><tr><th>Exercise</th><th>Sets (weight × reps)</th></tr>`;
     // Show in routine order when possible, then any extras
-    const rid = e.routine || ROUTINE_BY_DOW[(s.date.getDay() + 6) % 7];
+    const rid = e.routine || routineDefaultFor(s.date);
     const ordered = rid && ROUTINES[rid] ? ROUTINES[rid].exs.map(x => x.id).filter(id => e.sets[id]) : [];
     const extras = Object.keys(e.sets).filter(id => !ordered.includes(id));
     for (const exId of [...ordered, ...extras]) {

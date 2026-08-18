@@ -2,17 +2,21 @@
 
 Built 2026-08-17 from current training research. This doc is the "why" behind the app's programming.
 
-## Week Structure
+## Week Structure — Complementary Pairs, Alternating Emphasis
 
-| Day | Session | Bias |
+Pairings: Chest+Triceps · Back+Biceps · Legs. Weeks alternate which pair gets doubled (updated 2026-08-18 per Zach's preference).
+
+| Day | Chest Week | Back Week |
 |---|---|---|
-| Mon | Upper A — Heavy | Strength: 4–8 reps @ 2–3 RIR, long rests |
-| Tue | Lower A — Heavy Squat | Strength: 4–8 reps @ 2–3 RIR |
-| Wed | Tempo Ride | Zone 3, 45–60 min |
-| Thu | Upper B — Volume | Hypertrophy: 8–20 reps @ 0–2 RIR |
-| Fri | Lower B — Hinge & Volume | Deadlift + hypertrophy accessories |
-| Sat | Long Ride / Intervals | Zone 2 base (go easy if Friday was brutal) |
-| Sun | Rest | Walk, mobility, sleep |
+| Mon | Chest & Tris A — Heavy | Back & Bis A — Heavy |
+| Tue | Back & Bis A — Heavy | Chest & Tris A — Heavy |
+| Wed | Tempo Ride | Tempo Ride |
+| Thu | Chest & Tris B — Volume | Back & Bis B — Volume |
+| Fri | Legs — Squat & Hinge | Legs — Squat & Hinge |
+| Sat | Long Ride / Intervals | Long Ride / Intervals |
+| Sun | Rest | Rest |
+
+Heavy days: 4–8 reps @ 2–3 RIR, long rests. Volume days: 8–20 reps @ 0–2 RIR. A/B variants of a pair share no exercises. Emphasized pair averages 2×/week frequency over the cycle; deadlift lives on Back A, so hinging still happens most weeks even though Legs runs once.
 
 ## The Rules
 
