@@ -44,7 +44,7 @@
   --font-body: "Source Serif 4", system-ui, sans-serif;
 
   --space-1: 5px; --space-2: 10px; --space-3: 15px; --space-4: 20px;
-  --radius-sm: 1px; --radius-md: 2px; --radius-lg: 4px;
+  --radius-sm: 6px; --radius-md: 10px; --radius-lg: 14px;
   --shadow-sm: 0 1px 2px color-mix(in srgb, #2d2b2b 14%, transparent);
   --shadow-md: 0 3px 10px color-mix(in srgb, #2d2b2b 16%, transparent);
   --shadow-lg: 0 12px 32px color-mix(in srgb, #2d2b2b 22%, transparent);
@@ -222,7 +222,7 @@ button { -webkit-tap-highlight-color: transparent; }
   border: none; background: none; width: 100%; font-family: inherit; color: inherit; text-align: left;
   min-height: 44px;
 }
-.opt:hover { background: var(--color-neutral-100); }
+.opt:hover { background: var(--color-neutral-100); border-radius: var(--radius-md); }
 .opt .ring { width: 15px; height: 15px; flex-shrink: 0; border-radius: 50%; border: 1.5px solid var(--color-neutral-400); }
 .opt .ring.on { border: 5px solid var(--color-accent-700); }
 .opt .olabel { flex: 1; font-size: 14px; font-weight: 600; font-family: var(--font-heading); }
@@ -281,6 +281,7 @@ button { -webkit-tap-highlight-color: transparent; }
 
 /* Timer bar */
 .timerbar {
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   position: fixed; left: 50%; transform: translateX(-50%); bottom: 0;
   width: 100%; max-width: 430px; background: var(--color-bg);
   box-shadow: 0 -8px 28px rgba(45,43,43,0.18);
@@ -300,6 +301,7 @@ button { -webkit-tap-highlight-color: transparent; }
 .timerbar .tplus { height: 46px; font-size: 13px; padding-inline: 12px; }
 .timerbar .tskip { height: 46px; font-size: 16px; padding-inline: 8px; color: var(--color-neutral-600); }
 .idlestrip {
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   position: fixed; left: 50%; transform: translateX(-50%); bottom: 0;
   width: 100%; max-width: 430px; background: var(--color-bg);
   padding: 10px 22px calc(16px + env(safe-area-inset-bottom, 0px));
