@@ -6,9 +6,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Workouts">
-<meta name="theme-color" content="#f3f2f2" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#1b1a19" media="(prefers-color-scheme: dark)">
-<link rel="apple-touch-icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' rx='36' fill='%23f3f2f2'/><rect x='28' y='84' width='16' height='44' rx='5' fill='%23d6006c' opacity='0.35'/><rect x='136' y='84' width='16' height='44' rx='5' fill='%23d6006c' opacity='0.35'/><rect x='48' y='92' width='14' height='28' rx='4' fill='%23201e1d'/><rect x='118' y='92' width='14' height='28' rx='4' fill='%23201e1d'/><rect x='62' y='102' width='56' height='8' fill='%23201e1d'/></svg>">
+<meta name="theme-color" content="#f3f2f2">
+<link rel="apple-touch-icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' rx='36' fill='%23f3f2f2'/><rect x='28' y='84' width='16' height='44' rx='5' fill='%239d4b33' opacity='0.4'/><rect x='136' y='84' width='16' height='44' rx='5' fill='%239d4b33' opacity='0.4'/><rect x='48' y='92' width='14' height='28' rx='4' fill='%23201e1d'/><rect x='118' y='92' width='14' height='28' rx='4' fill='%23201e1d'/><rect x='62' y='102' width='56' height='8' fill='%23201e1d'/></svg>">
 <title>Workouts</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,8 +19,8 @@
   --color-bg: #f3f2f2;
   --color-surface: #eae9e9;
   --color-text: #201e1d;
-  --color-accent: #0088b0;
-  --color-accent-2: #d6006c;
+  --color-accent: #46657f;   /* slate — interactive (was process cyan) */
+  --color-accent-2: #9d4b33;  /* rust — lift spot color (was process magenta) */
   --color-divider: color-mix(in srgb, #201e1d 16%, transparent);
 
   --color-neutral-100: #f8f4f4;
@@ -34,10 +33,10 @@
   --color-neutral-800: #444141;
   --color-neutral-900: #2d2b2b;
 
-  --color-accent-100: #e9f8ff;
-  --color-accent-700: #006786;
-  --color-accent-2-100: #fff1f4;
-  --color-accent-2-700: #aa0b56;
+  --color-accent-100: #e9eef3;
+  --color-accent-700: #3a566e;
+  --color-accent-2-100: #f5eae5;
+  --color-accent-2-700: #7c3a26;
   --color-process-yellow: #edbb00;
 
   --font-heading: "Source Serif 4", system-ui, sans-serif;
@@ -52,53 +51,52 @@
 
   --status-green: oklch(0.55 0.14 150);
   --status-red: oklch(0.55 0.19 27);
-  /* Button fill stays at press-ink depth in both themes; marks brighten in dark */
+  /* Solid-fill button green stays at press depth in both themes */
   --status-green-fill: oklch(0.55 0.14 150);
-
-  /* Paper-on-fill text (primary buttons): paper in both themes */
+  /* Paper-on-fill text for primary/finish buttons — paper in both themes */
   --color-on-fill: var(--color-bg);
 
-  color-scheme: light dark;
+  color-scheme: light;
 }
 
-/* ═══ Dark mode — the sheet inverts: paper type on an ink ground.
-   Same Broadsheet grammar; the tonal ramps flip end-for-end, the
-   text-size accent steps lighten to hold contrast, and elevation
-   becomes a hairline edge + ambient darkness (per the token sheet). ═══ */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-bg: #1b1a19;
-    --color-surface: #262424;
-    --color-text: #f3f2f2;
-    --color-divider: color-mix(in srgb, #f3f2f2 16%, transparent);
+/* ═══ Dark theme (manual toggle, default light) — paper type on an ink
+   ground with the same muted slate/rust inks. Tonal ramps flip
+   end-for-end; accent text steps lighten to hold contrast; elevation
+   becomes a hairline edge + ambient darkness. ═══ */
+html.dark {
+  --color-bg: #1b1a19;
+  --color-surface: #262424;
+  --color-text: #f3f2f2;
+  --color-divider: color-mix(in srgb, #f3f2f2 16%, transparent);
 
-    --color-neutral-100: #2d2b2b;
-    --color-neutral-200: #444141;
-    --color-neutral-300: #605d5d;
-    --color-neutral-400: #7d7979;
-    --color-neutral-500: #9b9797;
-    --color-neutral-600: #bab6b6;
-    --color-neutral-700: #d7d3d3;
-    --color-neutral-800: #eae7e7;
-    --color-neutral-900: #f8f4f4;
+  --color-neutral-100: #2d2b2b;
+  --color-neutral-200: #444141;
+  --color-neutral-300: #605d5d;
+  --color-neutral-400: #7d7979;
+  --color-neutral-500: #9b9797;
+  --color-neutral-600: #bab6b6;
+  --color-neutral-700: #d7d3d3;
+  --color-neutral-800: #eae7e7;
+  --color-neutral-900: #f8f4f4;
 
-    --color-accent-100: #0a303e;
-    --color-accent-700: #62c5ee;
-    --color-accent-2-100: #4b1528;
-    --color-accent-2-700: #ff90b1;
+  --color-accent-100: #232c34;
+  --color-accent-700: #9fb8cc;
+  --color-accent-2-100: #33241d;
+  --color-accent-2-700: #cf9075;
 
-    --status-green: oklch(0.72 0.14 150);
-    --status-red: oklch(0.68 0.19 27);
+  --status-green: oklch(0.70 0.12 150);
+  --status-red: oklch(0.66 0.17 27);
 
-    --color-on-fill: #f3f2f2;
+  --color-on-fill: #f3f2f2;
 
-    --shadow-sm: 0 0 0 1px color-mix(in srgb, #f3f2f2 7%, transparent), 0 1px 2px rgba(0,0,0,0.5);
-    --shadow-md: 0 0 0 1px color-mix(in srgb, #f3f2f2 10%, transparent), 0 3px 10px rgba(0,0,0,0.55);
-    --shadow-lg: 0 0 0 1px color-mix(in srgb, #f3f2f2 10%, transparent), 0 12px 32px rgba(0,0,0,0.65);
-  }
-  .timerbar { box-shadow: 0 -8px 28px rgba(0,0,0,0.55); }
-  .idlestrip { box-shadow: 0 -8px 28px rgba(0,0,0,0.35); }
+  --shadow-sm: 0 0 0 1px color-mix(in srgb, #f3f2f2 7%, transparent), 0 1px 2px rgba(0,0,0,0.5);
+  --shadow-md: 0 0 0 1px color-mix(in srgb, #f3f2f2 10%, transparent), 0 3px 10px rgba(0,0,0,0.55);
+  --shadow-lg: 0 0 0 1px color-mix(in srgb, #f3f2f2 10%, transparent), 0 12px 32px rgba(0,0,0,0.65);
+
+  color-scheme: dark;
 }
+html.dark .timerbar { box-shadow: 0 -8px 28px rgba(0,0,0,0.55); }
+html.dark .idlestrip { box-shadow: 0 -8px 28px rgba(0,0,0,0.35); }
 
 *, *::before, *::after { box-sizing: border-box; }
 html, body { margin: 0; }
@@ -122,7 +120,7 @@ button { -webkit-tap-highlight-color: transparent; }
 }
 .btn:disabled { opacity: 0.45; cursor: not-allowed; }
 .btn-primary { background: var(--color-accent); color: var(--color-on-fill); }
-.btn-primary:hover { background: #1186ac; }
+.btn-primary:hover { background: #3d5971; }
 .btn-primary:active { background: var(--color-accent-700); }
 .btn-secondary { border-color: var(--color-divider); }
 .btn-secondary:hover { background: color-mix(in srgb, var(--color-text) 7%, transparent); }
@@ -317,7 +315,6 @@ button { -webkit-tap-highlight-color: transparent; }
   text-decoration: underline; text-underline-offset: 2px;
 }
 .tools button:hover { color: var(--color-accent-700); }
-.tools button.danger:hover { color: var(--status-red); }
 
 .data-backdrop {
   position: fixed; inset: 0; background: color-mix(in srgb, var(--color-neutral-900) 50%, transparent);
@@ -594,6 +591,23 @@ function lastSession(exId, beforeK) {
 }
 
 // ============================================================
+// THEME — manual toggle, default light; rides along in state (_prefs)
+// ============================================================
+function currentTheme() { return (state._prefs && state._prefs.theme) === "dark" ? "dark" : "light"; }
+function applyTheme() {
+  const dark = currentTheme() === "dark";
+  document.documentElement.classList.toggle("dark", dark);
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.content = dark ? "#1b1a19" : "#f3f2f2";
+}
+function toggleTheme() {
+  if (!state._prefs) state._prefs = {};
+  state._prefs.theme = currentTheme() === "dark" ? "light" : "dark";
+  persist();
+  applyTheme();
+}
+
+// ============================================================
 // UI STATE
 // ============================================================
 const ui = {
@@ -697,8 +711,8 @@ function renderWeek() {
     </div>
     <div class="tiles">${tiles}</div>
     <div class="tools">
+      <button data-act="toggle-theme">${currentTheme() === "dark" ? "Light mode" : "Dark mode"}</button>
       <button data-act="open-data">Export / Import data</button>
-      <button data-act="reset-all" class="danger">Reset all data</button>
     </div>
   </div>`;
 }
@@ -1086,16 +1100,8 @@ document.addEventListener("click", ev => {
   }
   if (act === "timer-skip") { ui.timer = null; renderTimer(); if (ui.screen === "exercise") render(); return; }
 
+  if (act === "toggle-theme") { toggleTheme(); render(); return; }
   if (act === "open-data") { openDataModal(); return; }
-  if (act === "reset-all") {
-    if (!confirm("This will erase ALL workout history — every swap, set, log, and completion mark. This can't be undone. Continue?")) return;
-    const prog = state._program;
-    state = {};
-    if (prog) state._program = prog;
-    persist();
-    render();
-    return;
-  }
 });
 
 // Re-render when another app (e.g. Blended Rhythm) toggles workout completion
@@ -1165,6 +1171,7 @@ document.getElementById("dataImportBtn").addEventListener("click", () => {
 });
 
 // ============================================================
+applyTheme();
 render();
 </script>
 </body>
