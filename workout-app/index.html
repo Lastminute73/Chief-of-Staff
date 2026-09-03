@@ -275,6 +275,7 @@ button { -webkit-tap-highlight-color: transparent; }
 .stepper .val { text-align: center; line-height: 1.05; }
 .stepper .val .num { font-size: 19px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .stepper .val .unit { font-size: 9px; letter-spacing: .1em; color: var(--color-neutral-500); }
+.stepper .val .kg { font-size: 9.5px; color: var(--color-neutral-500); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .slog { width: 52px; height: 52px; font-size: 20px; padding: 0; }
 
 .helper { font-size: 11.5px; color: var(--color-neutral-600); }
@@ -426,6 +427,8 @@ const R = {
 const OPTION_ORDER = ["chestA", "chestB", "backA", "backB", "legs", "tempo", "long", "rest"];
 const WEEKS = 12;
 const WEIGHT_STEP = 5;
+const LB_PER_KG = 2.2046226218;
+function fmtKg(lb) { return (lb / LB_PER_KG).toFixed(1) + " kg"; }
 
 // ============================================================
 // DATES
@@ -876,7 +879,7 @@ function renderExercise() {
           <span class="slabel">S${i + 1}</span>
           <span class="stepper">
             <button class="btn btn-secondary" data-act="bump" data-i="${i}" data-f="w" data-d="-1">−</button>
-            <span class="val"><span class="num">${inp.w > 0 ? inp.w : "BW"}</span><br><span class="unit">LB</span></span>
+            <span class="val"><span class="num">${inp.w > 0 ? inp.w : "BW"}</span><br><span class="unit">LB</span>${inp.w > 0 ? `<br><span class="kg">${fmtKg(inp.w)}</span>` : ""}</span>
             <button class="btn btn-secondary" data-act="bump" data-i="${i}" data-f="w" data-d="1">+</button>
           </span>
           <span class="stepper">
