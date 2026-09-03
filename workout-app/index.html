@@ -279,6 +279,10 @@ button { -webkit-tap-highlight-color: transparent; }
 .slog { width: 52px; height: 52px; font-size: 20px; padding: 0; }
 
 .helper { font-size: 11.5px; color: var(--color-neutral-600); }
+.ex-nav { display: flex; flex-direction: column; gap: 4px; margin-bottom: 20px; }
+.ex-nav .btn { font-size: 13.5px; }
+.ex-nav .btn:first-child { align-self: flex-start; }
+.ex-nav .btn:last-child { align-self: flex-end; }
 
 /* Timer bar */
 .timerbar {
@@ -892,6 +896,7 @@ function renderExercise() {
     }
   }
 
+  const isFirstEx = ui.curEx <= 0;
   const isLastEx = ui.curEx + 1 >= exs.length;
   const t = ui.timer;
   const exClock = t ? (t.go ? "GO" : fmtRest(Math.max(0, Math.round((t.endsAt - Date.now()) / 1000)))) : "";
@@ -922,7 +927,10 @@ function renderExercise() {
       ${rowsHtml}
       <button class="btn btn-ghost" data-act="add-set" style="align-self:flex-start;font-size:12.5px">+ Add a set</button>
       <div class="helper">Logging a set starts the ${fmtRest(slot.rest)} rest clock.</div>
-      <button class="btn btn-ghost" data-act="ex-next" style="align-self:flex-end;font-size:13.5px;margin-bottom:20px">${isLastEx ? "Back to session ›" : "Next: " + exs[ui.curEx + 1].name + " ›"}</button>
+      <div class="ex-nav">
+        <button class="btn btn-ghost" data-act="ex-prev">${isFirstEx ? "‹ Back to session" : "‹ Prev: " + exs[ui.curEx - 1].name}</button>
+        <button class="btn btn-ghost" data-act="ex-next">${isLastEx ? "Back to session ›" : "Next: " + exs[ui.curEx + 1].name + " ›"}</button>
+      </div>
     </div>
   </div>`;
 }
@@ -1084,6 +1092,12 @@ document.addEventListener("click", ev => {
     const rid = routineFor(k);
     const slot = slots(rid)[ui.curEx];
     addExtraSet(k, slot.id, rowCount(k, slot));
+    render();
+    return;
+  }
+  if (act === "ex-prev") {
+    if (ui.curEx <= 0) ui.screen = "session";
+    else ui.curEx--;
     render();
     return;
   }
