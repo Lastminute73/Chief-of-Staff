@@ -928,7 +928,7 @@ function renderExercise() {
       <button class="btn btn-ghost" data-act="add-set" style="align-self:flex-start;font-size:12.5px">+ Add a set</button>
       <div class="helper">Logging a set starts the ${fmtRest(slot.rest)} rest clock.</div>
       <div class="ex-nav">
-        <button class="btn btn-ghost" data-act="ex-prev">${isFirstEx ? "‹ Back to session" : "‹ Prev: " + exs[ui.curEx - 1].name}</button>
+        <button class="btn btn-ghost" data-act="ex-prev">${isFirstEx ? "‹ Back to session" : "‹ Prev"}</button>
         <button class="btn btn-ghost" data-act="ex-next">${isLastEx ? "Back to session ›" : "Next: " + exs[ui.curEx + 1].name + " ›"}</button>
       </div>
     </div>
