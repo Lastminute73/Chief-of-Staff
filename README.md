@@ -2,8 +2,7 @@
 
 **These apps moved.** Blended Rhythm and the Workout tracker were rebuilt as
 part of **Zachs Agent** — one phone app, one login, one database — at
-https://zachsagent.com. Source: https://github.com/Lastminute73/peptide-diary
-(being renamed to `zachs-agent`).
+https://zachsagent.com. Source: https://github.com/Lastminute73/zachs-agent.
 
 This repository is frozen as-is so the GitHub Pages site keeps working until
 the data has been carried over:
