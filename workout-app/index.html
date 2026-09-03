@@ -279,10 +279,10 @@ button { -webkit-tap-highlight-color: transparent; }
 .slog { width: 52px; height: 52px; font-size: 20px; padding: 0; }
 
 .helper { font-size: 11.5px; color: var(--color-neutral-600); }
-.ex-nav { display: flex; flex-direction: column; gap: 4px; margin-bottom: 20px; }
-.ex-nav .btn { font-size: 13.5px; }
-.ex-nav .btn:first-child { align-self: flex-start; }
-.ex-nav .btn:last-child { align-self: flex-end; }
+.ex-nav { display: grid; grid-template-columns: minmax(0, auto) minmax(0, auto); justify-content: space-between; align-items: start; gap: 12px; margin-bottom: 20px; }
+.ex-nav .btn { font-size: 13.5px; white-space: normal; line-height: 1.25; }
+.ex-nav .btn:first-child { text-align: left; justify-self: start; }
+.ex-nav .btn:last-child { text-align: right; justify-self: end; }
 
 /* Timer bar */
 .timerbar {
@@ -883,7 +883,7 @@ function renderExercise() {
           <span class="slabel">S${i + 1}</span>
           <span class="stepper">
             <button class="btn btn-secondary" data-act="bump" data-i="${i}" data-f="w" data-d="-1">−</button>
-            <span class="val"><span class="num">${inp.w > 0 ? inp.w : "BW"}</span><br><span class="unit">LB</span>${inp.w > 0 ? `<br><span class="kg">${fmtKg(inp.w)}</span>` : ""}</span>
+            <span class="val"><span class="num">${inp.w > 0 ? inp.w : "BW"}</span>${inp.w > 0 ? `<br><span class="kg">${fmtKg(inp.w)}</span>` : ""}</span>
             <button class="btn btn-secondary" data-act="bump" data-i="${i}" data-f="w" data-d="1">+</button>
           </span>
           <span class="stepper">
